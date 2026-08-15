@@ -3,6 +3,9 @@ Description=DEN rack fan control (EMC2101)
 Documentation=https://github.com/ivankozlovcodes/dots
 Wants=network-online.target
 After=network-online.target
+OnFailure=notify-failure@%n.service
+StartLimitIntervalSec=300
+StartLimitBurst=5
 
 [Service]
 Type=simple
