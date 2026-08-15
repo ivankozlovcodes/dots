@@ -1,0 +1,8 @@
+id_*
+!id_*.pub
+*.key
+*.pem
+known_hosts
+credentials
+env
+beszel_data/
