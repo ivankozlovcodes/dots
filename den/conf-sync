@@ -5,16 +5,22 @@
 #   conf-sync pull <host> <absolute-host-path>   # host -> git tree
 #
 # The git tree mirrors the host's filesystem, so den/ezekiel/etc/fstab is the
-# host's /etc/fstab. Paths under the remote user's home live under a top-level
-# "home/" directory in the tree.
+# host's /etc/fstab. The remote user's home is spelled HOME/ on both sides, so
+# den/minerva/HOME/.bashrc is /home/minerva/.bashrc.
 #
 # Files and directories both work; transfers go over tar so modes survive.
 # sudo is used only for paths outside the remote $HOME.
 
 set -euo pipefail
 
-DEN_ROOT="${DEN_ROOT:-$HOME/git/dots/den}"
-HOME_PREFIX="home"  # tree directory standing in for the remote $HOME
+# Default to the directory this script lives in, so running it from inside
+# the den tree needs no configuration.
+SCRIPT_DIR=$(cd -- "$(dirname -- "$(readlink -f -- "$0")")" && pwd)
+DEN_ROOT="${DEN_ROOT:-$SCRIPT_DIR}"
+
+# Tree directory standing in for the remote $HOME. Capitalised so the shell
+# never touches it — unlike ~, which expands locally before we see it.
+HOME_PREFIX="HOME"
 
 DRY_RUN=0
 REMOTE_HOME=""
@@ -23,15 +29,17 @@ usage() {
 	cat >&2 <<EOF
 usage: conf-sync [-n] <push|pull> <host> <path>
 
-  push  <host> <rel>   copy \$DEN_ROOT/<host>/<rel> to the matching path on <host>
-  pull  <host> /abs    copy /abs from <host> into \$DEN_ROOT/<host>/
+  push  <host> <rel>        copy \$DEN_ROOT/<host>/<rel> to the matching path on <host>
+  pull  <host> /abs|HOME/x  copy that path from <host> into \$DEN_ROOT/<host>/
+
+  HOME/ stands for the remote user's home directory, on both sides.
 
   -n    dry run: print the mapping, change nothing
 
 examples:
   conf-sync push ezekiel etc/systemd/system/emc2101-hwmon.service
   conf-sync pull zima /etc/systemd/system/beszel-agent.service.d
-  conf-sync pull ezekiel /home/ezekiel/.config/foo   # stored as home/.config/foo
+  conf-sync pull minerva HOME/docker/media-stack/jellyfin.container
 EOF
 	exit 2
 }
@@ -90,11 +98,14 @@ to_rel() {
 # `sudo -v` refreshes the timestamp; the transfer then runs with `sudo -n`.
 prime_sudo() {
 	local host=$1
-	if [[ ! -t 0 ]]; then
-		# No terminal to prompt on; -n will fail loudly if a password is needed.
-		return 0
-	fi
+	# Already usable (passwordless, or a live timestamp)?
+	ssh -o BatchMode=yes "$host" 'sudo -n true' 2>/dev/null && return 0
+	[[ -t 0 ]] || die "sudo on $host needs a password and there is no terminal to prompt on"
 	ssh -t "$host" 'sudo -v' || die "sudo authentication failed on $host"
+	# Verify rather than assume: a mistyped password here would otherwise
+	# surface later as an empty tar stream.
+	ssh -o BatchMode=yes "$host" 'sudo -n true' 2>/dev/null ||
+		die "sudo still not usable on $host"
 }
 
 # Anything inside the remote $HOME is the login user's own file: no sudo, and
@@ -148,7 +159,21 @@ push)
 	;;
 
 pull)
+	# HOME/... means the remote user's home, resolved per host.
+	case "$path" in
+	"$HOME_PREFIX") path=$(remote_home "$host") ;;
+	"$HOME_PREFIX"/*) path="$(remote_home "$host")/${path#"$HOME_PREFIX"/}" ;;
+	esac
+
 	[[ "$path" == /* ]] || die "pull takes an absolute path on $host"
+
+	# Catch an unquoted ~ that the local shell already expanded to this
+	# machine's home, which would otherwise silently pull with sudo.
+	if [[ "$path" == /home/* && "$path" != "$(remote_home "$host")"/* ]]; then
+		echo "conf-sync: note: $path is not under $host's home ($(remote_home "$host"))." >&2
+		echo "conf-sync: if you meant the remote home, write HOME/... instead" >&2
+	fi
+
 	rel=$(to_rel "$host" "$path")
 	dest="$tree/$rel"
 
@@ -163,8 +188,15 @@ pull)
 	[[ -n "$sudo_cmd" ]] && prime_sudo "$host"
 
 	mkdir -p "$(dirname -- "$dest")"
-	ssh "$host" "${sudo_cmd}tar -C $(printf '%q' "$(dirname -- "$path")") -cf - $(printf '%q' "$(basename -- "$path")")" |
-		tar -C "$(dirname -- "$dest")" -xpf -
+
+	# Buffer first: piping straight into tar turns any remote failure into a
+	# confusing "does not look like a tar archive".
+	tmp=$(mktemp)
+	trap 'rm -f "$tmp"' EXIT
+	ssh "$host" "${sudo_cmd}tar -C $(printf '%q' "$(dirname -- "$path")") -cf - $(printf '%q' "$(basename -- "$path")")" >"$tmp" ||
+		die "remote read failed on $host:$path"
+	[[ -s "$tmp" ]] || die "remote returned no data for $host:$path"
+	tar -C "$(dirname -- "$dest")" -xpf "$tmp"
 	;;
 
 *)
