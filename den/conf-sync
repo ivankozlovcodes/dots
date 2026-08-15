@@ -1,0 +1,173 @@
+#!/usr/bin/env bash
+# conf-sync — move config between the den git tree and a rack host.
+#
+#   conf-sync push <host> <git-relative-path>    # git tree -> host
+#   conf-sync pull <host> <absolute-host-path>   # host -> git tree
+#
+# The git tree mirrors the host's filesystem, so den/ezekiel/etc/fstab is the
+# host's /etc/fstab. Paths under the remote user's home live under a top-level
+# "home/" directory in the tree.
+#
+# Files and directories both work; transfers go over tar so modes survive.
+# sudo is used only for paths outside the remote $HOME.
+
+set -euo pipefail
+
+DEN_ROOT="${DEN_ROOT:-$HOME/git/dots/den}"
+HOME_PREFIX="home"  # tree directory standing in for the remote $HOME
+
+DRY_RUN=0
+REMOTE_HOME=""
+
+usage() {
+	cat >&2 <<EOF
+usage: conf-sync [-n] <push|pull> <host> <path>
+
+  push  <host> <rel>   copy \$DEN_ROOT/<host>/<rel> to the matching path on <host>
+  pull  <host> /abs    copy /abs from <host> into \$DEN_ROOT/<host>/
+
+  -n    dry run: print the mapping, change nothing
+
+examples:
+  conf-sync push ezekiel etc/systemd/system/emc2101-hwmon.service
+  conf-sync pull zima /etc/systemd/system/beszel-agent.service.d
+  conf-sync pull ezekiel /home/ezekiel/.config/foo   # stored as home/.config/foo
+EOF
+	exit 2
+}
+
+die() {
+	echo "conf-sync: $*" >&2
+	exit 1
+}
+
+# Private keys and credentials must never reach the repo, whichever way they
+# are moving. Git history is permanent; rotating is the only fix after a push.
+guard_secrets() {
+	local name
+	name=$(basename -- "$1")
+	case "$name" in
+	id_*)
+		[[ "$name" == *.pub ]] || die "refusing to sync private key: $name"
+		;;
+	*.key | *.pem | credentials | .env | known_hosts)
+		die "refusing to sync secret-bearing file: $name"
+		;;
+	esac
+}
+
+# One ssh round trip per run, cached.
+remote_home() {
+	if [[ -z "$REMOTE_HOME" ]]; then
+		REMOTE_HOME=$(ssh -o BatchMode=yes "$1" 'printf %s "$HOME"') ||
+			die "cannot reach $1 over ssh"
+		[[ -n "$REMOTE_HOME" ]] || die "$1 reported an empty \$HOME"
+	fi
+	printf '%s' "$REMOTE_HOME"
+}
+
+# git-tree relative path -> absolute path on the host
+to_abs() {
+	local host=$1 rel=$2
+	case "$rel" in
+	"$HOME_PREFIX"/*) printf '%s/%s' "$(remote_home "$host")" "${rel#"$HOME_PREFIX"/}" ;;
+	*) printf '/%s' "$rel" ;;
+	esac
+}
+
+# absolute path on the host -> git-tree relative path
+to_rel() {
+	local host=$1 abs=$2 home
+	home=$(remote_home "$host")
+	case "$abs" in
+	"$home"/*) printf '%s/%s' "$HOME_PREFIX" "${abs#"$home"/}" ;;
+	/*) printf '%s' "${abs#/}" ;;
+	esac
+}
+
+# Authenticate sudo on its own TTY before any data moves. On push stdin is the
+# tar stream, so a password prompt on that channel would consume the archive.
+# `sudo -v` refreshes the timestamp; the transfer then runs with `sudo -n`.
+prime_sudo() {
+	local host=$1
+	if [[ ! -t 0 ]]; then
+		# No terminal to prompt on; -n will fail loudly if a password is needed.
+		return 0
+	fi
+	ssh -t "$host" 'sudo -v' || die "sudo authentication failed on $host"
+}
+
+# Anything inside the remote $HOME is the login user's own file: no sudo, and
+# no ownership rewriting. Outside it, assume system config owned by root.
+is_system_path() {
+	local host=$1 abs=$2 home
+	home=$(remote_home "$host")
+	[[ "$abs" != "$home" && "$abs" != "$home"/* ]]
+}
+
+while getopts ":nh" opt; do
+	case "$opt" in
+	n) DRY_RUN=1 ;;
+	*) usage ;;
+	esac
+done
+shift $((OPTIND - 1))
+
+[[ $# -eq 3 ]] || usage
+action=$1 host=$2 path=$3
+
+[[ "$path" == *..* ]] && die "path must not contain .."
+guard_secrets "$path"
+
+tree="$DEN_ROOT/$host"
+[[ -d "$tree" ]] || die "no tree for host: $tree"
+
+case "$action" in
+push)
+	[[ "$path" != /* ]] || die "push takes a path relative to $tree, not an absolute one"
+	src="$tree/$path"
+	[[ -e "$src" ]] || die "not in the tree: $src"
+	dest=$(to_abs "$host" "$path")
+
+	if is_system_path "$host" "$dest"; then
+		sudo_cmd="sudo -n " label="sudo"
+		# Stops the local uid being written onto root-owned files.
+		own_args=(--owner=0 --group=0)
+	else
+		sudo_cmd="" label="no sudo"
+		own_args=()
+	fi
+
+	echo "push  $src  ->  $host:$dest  ($label)"
+	[[ $DRY_RUN -eq 1 ]] && exit 0
+	[[ -n "$sudo_cmd" ]] && prime_sudo "$host"
+
+	dest_dir=$(printf '%q' "$(dirname -- "$dest")")
+	tar -C "$(dirname -- "$src")" "${own_args[@]}" -cf - "$(basename -- "$src")" |
+		ssh "$host" "${sudo_cmd}mkdir -p $dest_dir && ${sudo_cmd}tar -C $dest_dir -xpf -"
+	;;
+
+pull)
+	[[ "$path" == /* ]] || die "pull takes an absolute path on $host"
+	rel=$(to_rel "$host" "$path")
+	dest="$tree/$rel"
+
+	if is_system_path "$host" "$path"; then
+		sudo_cmd="sudo -n " label="sudo"
+	else
+		sudo_cmd="" label="no sudo"
+	fi
+
+	echo "pull  $host:$path  ->  $dest  ($label)"
+	[[ $DRY_RUN -eq 1 ]] && exit 0
+	[[ -n "$sudo_cmd" ]] && prime_sudo "$host"
+
+	mkdir -p "$(dirname -- "$dest")"
+	ssh "$host" "${sudo_cmd}tar -C $(printf '%q' "$(dirname -- "$path")") -cf - $(printf '%q' "$(basename -- "$path")")" |
+		tar -C "$(dirname -- "$dest")" -xpf -
+	;;
+
+*)
+	usage
+	;;
+esac
