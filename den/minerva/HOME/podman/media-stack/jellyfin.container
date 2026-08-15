@@ -1,6 +1,9 @@
 [Unit]
 Description=Jellyfin
 After=network-online.target
+RequiresMountsFor=/mnt/nas
+StartLimitIntervalSec=1800
+StartLimitBurst=3
 
 [Container]
 ContainerName=jellyfin
@@ -11,13 +14,26 @@ PublishPort=7875:8096
 PublishPort=7359:7359/udp
 Environment=TZ=America/Los_Angeles
 Environment=JELLYFIN_PublishedServerUrl=http://minerva.den.jellyfin.com
+# The image's healthcheck curls this; pinned so an image update can't retarget
+# it under us (AutoUpdate=registry is on).
+Environment=HEALTHCHECK_URL=http://localhost:8096/health
 Volume=/etc/localtime:/etc/localtime:ro
 Volume=/home/minerva/appdata/jellyfin/config:/config
 Volume=/home/minerva/appdata/jellyfin/cache:/cache
 Volume=/mnt/nas/media:/data/media:ro
 
+# Image defaults are StartPeriod=10s / Interval=30s / Timeout=30s / Retries=3.
+# 10s is far too short for a cold start, and with kill attached a slow start
+# would become a restart loop. Pinned here so image updates can't change them.
+HealthStartPeriod=120s
+HealthInterval=30s
+HealthTimeout=10s
+HealthRetries=3
+HealthOnFailure=kill
+
 [Service]
 Restart=always
+RestartSec=10
 
 [Install]
 WantedBy=default.target

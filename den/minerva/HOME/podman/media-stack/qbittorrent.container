@@ -1,6 +1,8 @@
 [Unit]
 Description=qBittorrent
 After=network-online.target
+StartLimitIntervalSec=1800
+StartLimitBurst=3
 
 [Container]
 ContainerName=qbittorrent
@@ -18,8 +20,10 @@ Volume=/etc/localtime:/etc/localtime:ro
 Volume=/home/minerva/appdata/servarr/qbittorrent:/config
 Volume=/home/minerva/torrents:/data/torrents
 
+
 [Service]
 Restart=always
+RestartSec=10
 
 [Install]
 WantedBy=default.target

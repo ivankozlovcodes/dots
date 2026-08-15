@@ -1,6 +1,8 @@
 [Unit]
 Description=Prowlarr
 After=network-online.target
+StartLimitIntervalSec=1800
+StartLimitBurst=3
 
 [Container]
 ContainerName=prowlarr
@@ -14,8 +16,10 @@ Environment=TZ=America/Los_Angeles
 Volume=/etc/localtime:/etc/localtime:ro
 Volume=/home/minerva/appdata/servarr/prowlarr:/config
 
+
 [Service]
 Restart=always
+RestartSec=10
 
 [Install]
 WantedBy=default.target

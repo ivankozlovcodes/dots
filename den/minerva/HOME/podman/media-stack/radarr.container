@@ -1,6 +1,9 @@
 [Unit]
 Description=Radarr
 After=network-online.target
+RequiresMountsFor=/mnt/nas
+StartLimitIntervalSec=1800
+StartLimitBurst=3
 
 [Container]
 ContainerName=radarr
@@ -16,8 +19,10 @@ Volume=/home/minerva/appdata/servarr/radarr:/config
 Volume=/home/minerva/torrents:/data/torrents
 Volume=/mnt/nas/media:/data/media
 
+
 [Service]
 Restart=always
+RestartSec=10
 
 [Install]
 WantedBy=default.target

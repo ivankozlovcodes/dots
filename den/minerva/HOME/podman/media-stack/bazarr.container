@@ -1,6 +1,9 @@
 [Unit]
 Description=Bazarr
 After=network-online.target
+RequiresMountsFor=/mnt/nas
+StartLimitIntervalSec=1800
+StartLimitBurst=3
 
 [Container]
 ContainerName=bazarr
@@ -15,8 +18,10 @@ Volume=/etc/localtime:/etc/localtime:ro
 Volume=/home/minerva/appdata/servarr/bazarr:/config
 Volume=/mnt/nas/media:/data/media
 
+
 [Service]
 Restart=always
+RestartSec=10
 
 [Install]
 WantedBy=default.target
