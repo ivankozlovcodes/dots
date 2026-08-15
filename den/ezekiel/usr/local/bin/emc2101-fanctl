@@ -1,0 +1,120 @@
+#!/usr/bin/env python3
+"""Fan control for the DEN rack.
+
+Reads disk temperatures from zima over SSH, drives the EMC2101 on ezekiel.
+Falls back to FAILSAFE_DUTY whenever temperatures cannot be read.
+"""
+
+import subprocess
+import time
+
+import board
+from adafruit_emc2101 import EMC2101
+
+ZIMA = "casaos@192.168.1.208"
+SSH_KEY = "/etc/emc2101-fanctl/id_fanctl"
+KNOWN_HOSTS = "/etc/emc2101-fanctl/known_hosts"
+POLL_SECONDS = 30
+FAILSAFE_DUTY = 60
+MIN_DUTY = 20
+HYSTERESIS = 2  # °C below a step before easing off, so the fans don't hunt
+
+# The EMC2101 derives RPM as 5_400_000 / tach_count across two registers. A read
+# that straddles an update returns a mangled count, which shows up as absurd RPM.
+TACH_MIN_RPM = 100
+TACH_MAX_RPM = 4000
+
+# (temperature °C at or above, duty %) — highest first
+CURVE = [
+    (45, 100),
+    (42, 80),
+    (38, 60),
+    (34, 40),
+    (0, MIN_DUTY),
+]
+
+READ_CMD = "grep -H . /sys/class/hwmon/hwmon*/name /sys/class/hwmon/hwmon*/temp1_input"
+
+
+def read_disk_temps():
+    """Return drivetemp readings in °C, or [] on any failure."""
+    try:
+        out = subprocess.run(
+            ["ssh", "-i", SSH_KEY, "-o", "BatchMode=yes",
+             "-o", f"UserKnownHostsFile={KNOWN_HOSTS}",
+             "-o", "ConnectTimeout=10", ZIMA, READ_CMD],
+            capture_output=True, text=True, timeout=20,
+        )
+    except (subprocess.TimeoutExpired, OSError):
+        return []
+    if out.returncode != 0:
+        return []
+
+    names, temps = {}, {}
+    for line in out.stdout.splitlines():
+        path, _, value = line.partition(":")
+        node = path.split("/")[4]  # hwmonN — resolved by name below, never hardcoded
+        if path.endswith("/name"):
+            names[node] = value
+        elif path.endswith("/temp1_input"):
+            temps[node] = int(value) / 1000
+
+    return [t for node, t in temps.items() if names.get(node) == "drivetemp"]
+
+
+def duty_for(temp, current):
+    """Pick a duty for temp, refusing to step down until HYSTERESIS is cleared."""
+    target = MIN_DUTY
+    for threshold, duty in CURVE:
+        if temp >= threshold:
+            target = duty
+            break
+
+    if target < current:
+        for threshold, duty in CURVE:
+            if duty == current and temp > threshold - HYSTERESIS:
+                return current
+
+    return target
+
+
+def read_tach(emc):
+    """Return RPM, or None if both attempts come back implausible."""
+    for _ in range(2):
+        try:
+            rpm = emc.fan_speed
+        except OSError:
+            return None
+        if TACH_MIN_RPM <= rpm <= TACH_MAX_RPM:
+            return rpm
+        time.sleep(0.2)
+    return None
+
+
+def main():
+    emc = EMC2101(board.I2C())
+    current = FAILSAFE_DUTY
+    emc.manual_fan_speed = current
+    print(f"start: duty {current}%", flush=True)
+
+    while True:
+        temps = read_disk_temps()
+        if temps:
+            target = duty_for(max(temps), current)
+            reason = "disks " + ", ".join(f"{t:.0f}" for t in temps) + " C"
+        else:
+            target = FAILSAFE_DUTY
+            reason = "temps unavailable, failsafe"
+
+        if target != current:
+            emc.manual_fan_speed = target
+            current = target
+
+        rpm = read_tach(emc)
+        tach = f"{rpm:.0f} RPM" if rpm is not None else "tach unreadable"
+        print(f"{reason} -> duty {current}%, {tach}", flush=True)
+        time.sleep(POLL_SECONDS)
+
+
+if __name__ == "__main__":
+    main()

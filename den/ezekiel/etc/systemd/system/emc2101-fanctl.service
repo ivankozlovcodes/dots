@@ -1,0 +1,23 @@
+[Unit]
+Description=DEN rack fan control (EMC2101)
+Documentation=https://github.com/ivankozlovcodes/dots
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=fanctl
+Environment=HOME=/etc/emc2101-fanctl
+ExecStart=/opt/emc2101-fanctl/venv/bin/python /usr/local/bin/emc2101-fanctl
+Restart=always
+RestartSec=10
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+
+[Install]
+WantedBy=multi-user.target
