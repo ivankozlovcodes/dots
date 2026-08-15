@@ -1,0 +1,23 @@
+[Unit]
+Description=EMC2101 hwmon-shaped sensor export
+Documentation=https://github.com/ivankozlovcodes/dots
+After=emc2101-fanctl.service
+
+[Service]
+Type=simple
+User=fanctl
+ExecStart=/opt/emc2101-fanctl/venv/bin/python /usr/local/bin/emc2101-hwmon
+Restart=always
+RestartSec=10
+RuntimeDirectory=emc2101-hwmon
+RuntimeDirectoryMode=0755
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+
+[Install]
+WantedBy=multi-user.target
