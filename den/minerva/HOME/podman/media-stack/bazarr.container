@@ -2,8 +2,13 @@
 Description=Bazarr
 After=network-online.target
 RequiresMountsFor=/mnt/nas
+# RequiresMountsFor is inert here: mnt-nas.mount is a system unit and this
+# runs under the user manager. /mnt/nas is an x-systemd.automount over CIFS
+# to casa.den, so a cold boot can leave it unresolvable for a minute or two.
+# The backoff and burst below are sized to outlast that without masking a
+# genuine crash loop.
 StartLimitIntervalSec=1800
-StartLimitBurst=3
+StartLimitBurst=10
 
 [Container]
 ContainerName=bazarr
@@ -21,7 +26,7 @@ Volume=/mnt/nas/media:/data/media
 
 [Service]
 Restart=always
-RestartSec=10
+RestartSec=30
 
 [Install]
 WantedBy=default.target
