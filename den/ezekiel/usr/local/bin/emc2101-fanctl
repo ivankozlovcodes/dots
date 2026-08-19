@@ -11,12 +11,12 @@ import time
 import board
 from adafruit_emc2101 import EMC2101
 
-ZIMA = "casaos@192.168.1.208"
+ZIMA = "casaos@casa.den"
 SSH_KEY = "/etc/emc2101-fanctl/id_fanctl"
 KNOWN_HOSTS = "/etc/emc2101-fanctl/known_hosts"
 POLL_SECONDS = 30
 FAILSAFE_DUTY = 60
-MIN_DUTY = 20
+MIN_DUTY = 25
 HYSTERESIS = 2  # °C below a step before easing off, so the fans don't hunt
 
 # The EMC2101 derives RPM as 5_400_000 / tach_count across two registers. A read
@@ -24,13 +24,21 @@ HYSTERESIS = 2  # °C below a step before easing off, so the fans don't hunt
 TACH_MIN_RPM = 100
 TACH_MAX_RPM = 4000
 
+# The NF-A12x25 G2 spans 360 rpm at ~20% duty to 1800 rpm at 100%, near enough
+# to linear in between: rpm ~= 360 + 18 * (duty - 20). Duties below are derived
+# from that, so the comments are targets rather than measurements — check them
+# against read_tach() before trusting the quiet end.
+#
+# WD Red Plus is specified for 30-40 °C, so at or below 35 the fans sit on the
+# silent baseline and the steps past 40 climb hard to pull back into range.
+#
 # (temperature °C at or above, duty %) — highest first
 CURVE = [
-    (45, 100),
-    (42, 80),
-    (38, 60),
-    (34, 40),
-    (0, MIN_DUTY),
+    (50, 100),  # ~1800 rpm — max, well past spec
+    (45, 70),   # ~1260 rpm
+    (40, 50),   # ~900 rpm  — top of the recommended range
+    (36, 33),   # ~595 rpm
+    (0, MIN_DUTY),  # ~450 rpm — silent baseline, <= 35 °C
 ]
 
 READ_CMD = "grep -H . /sys/class/hwmon/hwmon*/name /sys/class/hwmon/hwmon*/temp1_input"
