@@ -18,7 +18,7 @@ Network=media.network
 PublishPort=7875:8096
 PublishPort=7359:7359/udp
 Environment=TZ=America/Los_Angeles
-Environment=JELLYFIN_PublishedServerUrl=http://minerva.den.jellyfin.com
+Environment=JELLYFIN_PublishedServerUrl=http://minerva.den:7875
 # The image's healthcheck curls this; pinned so an image update can't retarget
 # it under us (AutoUpdate=registry is on).
 Environment=HEALTHCHECK_URL=http://localhost:8096/health
