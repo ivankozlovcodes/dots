@@ -1,0 +1,18 @@
+[Unit]
+Description=Uptime Kuma
+
+[Container]
+Image=docker.io/louislam/uptime-kuma:2.5.0
+ContainerName=uptime-kuma
+PublishPort=3001:3001
+Volume=/home/minerva/appdata/kuma:/app/data
+Volume=%t/podman/podman.sock:/var/run/docker.sock:ro
+Network=media
+Network=monitoring
+
+[Service]
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target
