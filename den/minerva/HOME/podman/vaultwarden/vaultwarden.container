@@ -1,0 +1,25 @@
+[Unit]
+Description=Vaultwarden
+After=network-online.target
+
+[Container]
+ContainerName=vaultwarden
+Image=docker.io/vaultwarden/server:1.37.1
+PublishPort=192.168.8.69:8080:80
+Network=monitoring
+Environment=TZ=America/Los_Angeles
+Environment=DOMAIN=https://gl-be9300.tail9e3eb4.ts.net
+Environment=SIGNUPS_ALLOWED=false
+# tailscale serve sets X-Forwarded-For; vaultwarden reads X-Real-IP by default.
+# Without this every login is logged as coming from the router and the
+# failed-login rate limiter cannot tell one source from another.
+Environment=IP_HEADER=X-Forwarded-For
+Volume=/etc/localtime:/etc/localtime:ro
+Volume=/home/minerva/appdata/vaultwarden:/data
+
+[Service]
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target
