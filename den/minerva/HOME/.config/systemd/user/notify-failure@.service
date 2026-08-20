@@ -1,0 +1,10 @@
+[Unit]
+Description=Telegram notification that %i failed
+
+[Service]
+Type=oneshot
+EnvironmentFile=%h/.config/notify-failure.env
+ExecStart=/usr/bin/curl -sS --max-time 20 \
+  -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
+  -d chat_id=${TG_CHAT} \
+  --data-urlencode "text=🔴 %H: %i entered failed state"

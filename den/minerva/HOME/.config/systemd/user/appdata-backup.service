@@ -1,0 +1,7 @@
+[Unit]
+Description=Back up minerva appdata to the NAS
+OnFailure=notify-failure@%n.service
+
+[Service]
+Type=oneshot
+ExecStart=%h/podman/media-stack/appdata-backup.sh

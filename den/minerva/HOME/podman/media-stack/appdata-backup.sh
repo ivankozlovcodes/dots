@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-UNITS="radarr sonarr prowlarr bazarr qbittorrent jellyfin seerr"
+UNITS="radarr sonarr prowlarr bazarr qbittorrent jellyfin seerr vaultwarden"
 DEST=/mnt/nas/backups/media-stack
 
 mountpoint -q /mnt/nas || { echo "NAS not mounted, aborting"; exit 1; }
