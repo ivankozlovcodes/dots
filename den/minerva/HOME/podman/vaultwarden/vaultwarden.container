@@ -14,6 +14,7 @@ Environment=SIGNUPS_ALLOWED=false
 # Without this every login is logged as coming from the router and the
 # failed-login rate limiter cannot tell one source from another.
 Environment=IP_HEADER=X-Forwarded-For
+Environment=EXPERIMENTAL_CLIENT_FEATURE_FLAGS=ssh-key-vault-item,ssh-agent
 Volume=/etc/localtime:/etc/localtime:ro
 Volume=/home/minerva/appdata/vaultwarden:/data
 
