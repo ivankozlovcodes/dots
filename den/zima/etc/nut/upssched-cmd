@@ -1,0 +1,8 @@
+#!/bin/sh
+
+case "$1" in
+	onbatt-shutdown)
+		logger -t upssched-cmd "10 min on battery - forcing shutdown"
+		sudo /usr/sbin/upsmon -c fsd
+		;;
+esac
