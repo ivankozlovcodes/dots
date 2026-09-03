@@ -1,0 +1,20 @@
+# /etc/fstab: static file system information.
+#
+# Use 'blkid' to print the universally unique identifier for a
+# device; this may be used with UUID= as a more robust way to name devices
+# that works even if disks are added and removed. See fstab(5).
+#
+# systemd generates mount units based on this file, see systemd.mount(5).
+# Please run 'systemctl daemon-reload' after making changes here.
+#
+# <file system> <mount point>   <type>  <options>       <dump>  <pass>
+/dev/mapper/minerva--vg-root /               ext4    errors=remount-ro 0       1
+# /boot was on /dev/nvme0n1p2 during installation
+UUID=9aaf8fb1-9e1a-47f3-9398-d602046fae0a /boot           ext4    defaults        0       2
+# /boot/efi was on /dev/nvme0n1p1 during installation
+UUID=6ED9-4B6D  /boot/efi       vfat    umask=0077      0       1
+/dev/mapper/minerva--vg-swap_1 none            swap    sw              0       0
+
+//192.168.8.2/nas  /home/llm/nas  cifs  credentials=/etc/samba/credentials/llm,uid=llm,gid=llm,dir_mode=0700,file_mode=0600,nosharesock,iocharset=utf8,vers=3.1.1,_netdev,nofail,x-systemd.automount,x-systemd.requires=network-online.target,x-systemd.idle-timeout=600,x-systemd.mount-timeout=180  0 0
+
+//192.168.8.2/nas  /mnt/nas  cifs  credentials=/etc/samba/credentials/zima,uid=1000,gid=1000,dir_mode=0700,file_mode=0600,iocharset=utf8,vers=3.1.1,_netdev,nofail,x-systemd.automount,x-systemd.requires=network-online.target,x-systemd.idle-timeout=600,x-systemd.mount-timeout=180  0 0
