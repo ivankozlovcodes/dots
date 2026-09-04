@@ -1,0 +1,11 @@
+[Unit]
+Description=Immich Machine Learning
+
+[Container]
+#AutoUpdate=registry
+Pod=immich.pod
+Image=ghcr.io/immich-app/immich-machine-learning:v3
+Volume=immich-model-cache:/cache
+
+[Service]
+TimeoutStartSec=900
