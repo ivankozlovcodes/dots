@@ -1,0 +1,11 @@
+[Unit]
+Description=restic backup of %i to B2
+Wants=network-online.target
+After=network-online.target
+OnFailure=notify-failure@restic-backup-%i.service
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/restic-backup %i
+Nice=10
+IOSchedulingClass=idle
