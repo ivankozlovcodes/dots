@@ -1,6 +1,7 @@
 [Unit]
 Description=Immich Server
-Requires=immich-redis.container immich-database.container
+Requires=immich-redis.service immich-database.service
+After=immich-redis.service immich-database.service mnt-nas.mount
 
 [Container]
 #AutoUpdate=registry
@@ -18,3 +19,5 @@ Environment=REDIS_HOSTNAME=localhost
 
 [Service]
 TimeoutStartSec=900
+Restart=on-failure
+RestartSec=10
