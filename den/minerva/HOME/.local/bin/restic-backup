@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# Usage: restic-backup <obsidian|photos> [init]
+# Credentials: ~/.config/restic/b2.env (B2_ACCOUNT_ID, B2_ACCOUNT_KEY, RESTIC_PASSWORD, B2_BUCKET)
+set -euo pipefail
+set -a; . "$HOME/.config/restic/b2.env"; set +a
+R="$HOME/.local/bin/restic"
+job="$1"
+export RESTIC_REPOSITORY="b2:${B2_BUCKET}:${job}"
+
+case "$job" in
+  obsidian)
+    src="/mnt/nas/obsidian/"
+    guard="$src/sb"
+    excl=(--exclude "**/.obsidian/workspace*.json" --exclude "**/.trash")
+    ;;
+  photos)
+    src="/mnt/nas/photos"
+    guard="$src/upload"
+    excl=(--exclude "$src/thumbs" --exclude "$src/encoded-video")
+    ;;
+  *) echo "unknown job: $job" >&2; exit 2 ;;
+esac
+
+if [ "${2:-}" = init ]; then "$R" init; exit; fi
+
+# Refuse to back up an empty/unmounted source (would create a bogus snapshot)
+if [ -z "$(ls -A "$guard" 2>/dev/null)" ]; then
+  echo "source $guard missing or empty - is the NAS mounted? aborting" >&2; exit 1
+fi
+
+"$R" backup "$src" "${excl[@]}" --tag "$job" --host minerva
+"$R" forget --tag "$job" --host minerva --keep-daily 7 --keep-weekly 4 --keep-monthly 12 --prune
+# Weekly integrity check on Sundays: verifies 10% of stored data
+if [ "$(date +%u)" = 7 ]; then "$R" check --read-data-subset=10%; fi
