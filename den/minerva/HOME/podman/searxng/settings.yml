@@ -1,0 +1,24 @@
+# Overrides on top of SearXNG's bundled searx/settings.yml.
+# secret_key comes from the searxng_secret_key podman secret (SEARXNG_SECRET).
+use_default_settings: true
+
+general:
+  instance_name: "SearXNG"
+
+server:
+  # Private instance on LAN/tailnet: no valkey, so no bot limiter.
+  limiter: false
+  public_instance: false
+  image_proxy: true
+  method: "GET"
+
+search:
+  safe_search: 0
+  autocomplete: "duckduckgo"
+  formats:
+    - html
+    - json
+
+ui:
+  query_in_title: true
+  infinite_scroll: true

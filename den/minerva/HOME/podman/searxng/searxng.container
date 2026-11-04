@@ -1,0 +1,24 @@
+[Unit]
+Description=SearXNG
+After=network-online.target
+
+[Container]
+ContainerName=searxng
+Image=docker.io/searxng/searxng:2026.11.2-cccbc9e15
+PublishPort=8888:8080
+Network=monitoring
+Environment=TZ=America/Los_Angeles
+# Entrypoint chowns /etc/searxng when it isn't owned by searxng; the settings
+# file is a read-only bind of the git tree, so leave ownership alone.
+Environment=FORCE_OWNERSHIP=false
+# server.secret_key; SearXNG refuses to start with the template's placeholder.
+Secret=searxng_secret_key,type=env,target=SEARXNG_SECRET
+Volume=/home/minerva/git/dots/den/minerva/HOME/podman/searxng/settings.yml:/etc/searxng/settings.yml:ro
+Volume=/home/minerva/appdata/searxng:/var/cache/searxng
+
+[Service]
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target
