@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- minerva xrdp remote session only. Large title bars, no compositor. -->
+<channel name="xfwm4" version="1.0">
+  <property name="general" type="empty">
+    <property name="theme" type="string" value="Default-xhdpi"/>
+    <property name="title_font" type="string" value="Sans Bold 10"/>
+    <property name="button_layout" type="string" value="O|HMC"/>
+    <property name="use_compositing" type="bool" value="false"/>
+    <property name="box_move" type="bool" value="true"/>
+    <property name="box_resize" type="bool" value="true"/>
+    <property name="workspace_count" type="int" value="1"/>
+    <property name="wrap_windows" type="bool" value="false"/>
+    <property name="wrap_workspaces" type="bool" value="false"/>
+    <property name="cycle_preview" type="bool" value="false"/>
+    <property name="show_dock_shadow" type="bool" value="false"/>
+    <property name="show_frame_shadow" type="bool" value="false"/>
+    <property name="show_popup_shadow" type="bool" value="false"/>
+  </property>
+</channel>

@@ -1,0 +1,7 @@
+#!/bin/sh
+# xrdp-test-connect: non-root test: connect to xrdp at the inner-screen size inside an off-screen Xvfb
+# (never touches :0). Type your login password at the "Password:" prompt.
+# Disconnects automatically after 90 s; the remote session stays running for inspection.
+timeout --foreground 90 xvfb-run -a -s "-screen 0 2200x2200x24" \
+  xfreerdp3 /v:100.66.141.66 /u:minerva /size:2076x2152 /cert:ignore /dynamic-resolution /log-level:ERROR /from-stdin:force
+echo "test done (exit $?)"

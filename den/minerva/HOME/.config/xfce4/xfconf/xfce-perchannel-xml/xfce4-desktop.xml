@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- minerva xrdp remote session only. No icons, solid dark background (no image). -->
+<channel name="xfce4-desktop" version="1.0">
+  <property name="desktop-icons" type="empty">
+    <property name="style" type="int" value="0"/>
+  </property>
+  <property name="desktop-menu" type="empty">
+    <property name="show" type="bool" value="false"/>
+  </property>
+  <property name="backdrop" type="empty">
+    <property name="single-workspace-mode" type="bool" value="true"/>
+    <property name="single-workspace-number" type="int" value="0"/>
+    <property name="screen0" type="empty">
+      <property name="monitorrdp0" type="empty">
+        <property name="workspace0" type="empty">
+          <property name="image-style" type="int" value="0"/>
+          <property name="color-style" type="int" value="0"/>
+          <property name="rgba1" type="array">
+            <value type="double" value="0.15"/>
+            <value type="double" value="0.17"/>
+            <value type="double" value="0.20"/>
+            <value type="double" value="1"/>
+          </property>
+        </property>
+      </property>
+    </property>
+  </property>
+</channel>
