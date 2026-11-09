@@ -1,0 +1,49 @@
+[Unit]
+Description=herdr server for owl, the read-only vault librarian
+Wants=network-online.target
+Requires=home-owl-obsidian.mount
+After=network-online.target systemd-tmpfiles-setup.service home-owl-obsidian.mount
+RequiresMountsFor=/home/owl/obsidian
+
+[Service]
+Type=simple
+User=owl
+Group=owl
+WorkingDirectory=/home/owl
+Environment=HOME=/home/owl
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+Environment=PI_OFFLINE=1
+UMask=0077
+ExecStart=/usr/local/bin/herdr server
+ExecStartPost=/usr/local/lib/owl/start-owl.sh
+Restart=on-failure
+RestartSec=5
+
+# filesystem: own home read-only except pi/herdr state, the vault mount read-only, nothing else from /home
+ProtectSystem=strict
+ProtectHome=tmpfs
+BindReadOnlyPaths=/home/owl
+ReadWritePaths=-/home/owl/.pi/agent -/home/owl/.config -/home/owl/.cache -/home/owl/.local/state /run/owl
+InaccessiblePaths=-/home/owl/obsidian/.pi
+# pi/memory in both vaults is denied to owl-ro by a NAS ACL; systemd cannot mask it (stat gets EACCES)
+InaccessiblePaths=-/home/owl/obsidian/sb/.obsidian -/home/owl/obsidian/sb/.trash -/home/owl/obsidian/sb/.pi -/home/owl/obsidian/sb/.password
+InaccessiblePaths="-/home/owl/obsidian/Second Brain/.obsidian" "-/home/owl/obsidian/Second Brain/.trash" "-/home/owl/obsidian/Second Brain/.pi" "-/home/owl/obsidian/Second Brain/.password"
+PrivateTmp=yes
+NoNewPrivileges=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictNamespaces=yes
+LockPersonality=yes
+
+# network: brainz only (the SMB mount is kernel traffic, not this unit's)
+IPAddressDeny=any
+IPAddressAllow=192.168.8.4
+
+# resources
+MemoryMax=4G
+CPUQuota=200%
+TasksMax=512
+
+[Install]
+WantedBy=multi-user.target

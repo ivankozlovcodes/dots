@@ -1,0 +1,16 @@
+# owl's read-only SMB view of the obsidian vaults (NAS share obsidian-ro, user owl-ro).
+# A plain mount, not an automount, so it is in place before owl.service builds its namespace.
+[Unit]
+Description=owl's read-only SMB mount of the obsidian vaults
+Wants=network-online.target
+After=network-online.target
+
+[Mount]
+What=//192.168.8.2/obsidian-ro
+Where=/home/owl/obsidian
+Type=cifs
+Options=ro,credentials=/etc/samba/credentials/owl,uid=owl,gid=owl,file_mode=0440,dir_mode=0550,vers=3.1.1,iocharset=utf8,nosharesock,_netdev
+TimeoutSec=60
+
+[Install]
+WantedBy=multi-user.target
