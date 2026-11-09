@@ -1,0 +1,42 @@
+[Unit]
+Description=herdr server for sandboxed claude agents
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=claude
+Group=claude
+SupplementaryGroups=pi-shared
+WorkingDirectory=/home/claude
+Environment=PATH=/home/claude/.local/bin:/usr/local/bin:/usr/bin:/bin
+UMask=0002
+ExecStart=/usr/local/bin/herdr server
+Restart=on-failure
+RestartSec=5
+
+# --- filesystem: only claude's home + shared workspace are visible/writable
+ProtectSystem=strict
+ProtectHome=tmpfs
+BindPaths=/home/claude /srv/work
+ReadWritePaths=/home/claude /srv/work
+PrivateTmp=yes
+# Blocks sudo/setuid. NOTE: also breaks rootless podman (newuidmap is setuid);
+# set to "no" if agents must run podman.
+NoNewPrivileges=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+
+# --- network (cgroup BPF: applies in BOTH directions, all child processes)
+IPAddressDeny=localhost link-local multicast 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 100.64.0.0/10 fc00::/7
+# Tailscale MagicDNS is the system resolver; allow beats deny
+IPAddressAllow=100.100.100.100 fd7a:115c:a1e0::53
+
+# --- resources
+MemoryMax=8G
+CPUQuota=400%
+TasksMax=2048
+
+[Install]
+WantedBy=multi-user.target
