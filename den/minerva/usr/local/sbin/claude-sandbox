@@ -1,0 +1,39 @@
+#!/bin/bash
+# claude-sandbox: run a command as claude inside the same sandbox as claude-herdr.service,
+# attached to this terminal (a transient systemd unit per run). Default command: claude's pi.
+#   sudo claude-sandbox            # interactive pi
+#   sudo claude-sandbox bash       # a sandboxed shell
+# Keep the -p properties in sync with /etc/systemd/system/claude-herdr.service (+ owl drop-in).
+set -euo pipefail
+[ "$(id -u)" = 0 ] || exec sudo -n "$0" "$@"
+
+PI=/home/claude/.pi/agent/bin/pi
+cmd=("$@")
+[ ${#cmd[@]} -gt 0 ] || cmd=("$PI")
+[ "${cmd[0]}" = pi ] && cmd[0]=$PI
+
+if [ -t 0 ] && [ -t 1 ]; then io=(--pty); else io=(--pipe --wait); fi
+
+exec systemd-run "${io[@]}" --quiet --collect \
+	--unit="claude-sandbox-$(date +%s)-$$" \
+	--description="sandboxed claude session (claude-sandbox)" \
+	--uid=claude --gid=claude \
+	-p SupplementaryGroups="pi-shared owl-clients" \
+	-p WorkingDirectory=/home/claude \
+	-E HOME=/home/claude -E USER=claude -E LOGNAME=claude -E SHELL=/bin/bash \
+	-E PATH=/home/claude/.local/bin:/usr/local/bin:/usr/bin:/bin \
+	-E TERM="${TERM:-xterm-256color}" -E COLORTERM="${COLORTERM:-truecolor}" -E LANG="${LANG:-C.UTF-8}" \
+	-p UMask=0002 \
+	-p ProtectSystem=strict \
+	-p ProtectHome=tmpfs \
+	-p BindPaths="/home/claude /srv/work" \
+	-p ReadWritePaths="/home/claude /srv/work" \
+	-p PrivateTmp=yes \
+	-p NoNewPrivileges=yes \
+	-p ProtectKernelTunables=yes \
+	-p ProtectKernelModules=yes \
+	-p ProtectControlGroups=yes \
+	-p IPAddressDeny="127.0.0.0/8 ::1/128 169.254.0.0/16 fe80::/10 224.0.0.0/4 ff00::/8 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 100.64.0.0/10 fc00::/7" \
+	-p IPAddressAllow="100.100.100.100 fd7a:115c:a1e0::53" \
+	-p MemoryMax=8G -p CPUQuota=400% -p TasksMax=2048 \
+	-- "${cmd[@]}"
