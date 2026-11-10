@@ -1,0 +1,12 @@
+[Unit]
+Description=nftables: claude may reach loopback only on tcp 8888 (SearXNG)
+Before=claude-herdr.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/sbin/nft -f /etc/claude-egress.nft
+ExecStop=/usr/sbin/nft destroy table inet claude_egress
+
+[Install]
+WantedBy=multi-user.target
