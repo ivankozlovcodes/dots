@@ -1,18 +1,35 @@
 #!/usr/sbin/nft -f
-# claude (uid 1002) may use loopback only for SearXNG (tcp 8888). Everything else on
-# minerva's loopback (vaultwarden, immich, qbittorrent, ...) stays closed to claude, also
-# for claude processes outside the sandbox. LAN is closed by the units' IPAddressDeny.
-# Loaded by claude-egress.service. Separate table: does not touch podman/docker rules.
+# Egress policy for the claude uid (1002), for every claude process (sandboxed or not).
+#   internet: yes                    tailscale DNS (port 53): yes
+#   loopback: SearXNG (tcp 8888), and sockets owned by a claude sandbox (claude.slice),
+#             e.g. pi-browser's pinning proxy that Chromium talks to
+#   LAN, link-local, CGNAT/tailnet, ULA, other loopback services: no
+# New claude->loopback connections are marked on output and decided on input, where the
+# receiving socket's cgroup is known. Mark bit 0x40000000 (docker/tailscale use 0xff0000).
+# Loaded by claude-egress.service (after claude.slice). Does not touch podman/docker tables.
 destroy table inet claude_egress
 table inet claude_egress {
-        chain out {
-                type filter hook output priority filter; policy accept;
-                meta skuid != 1002 accept
-                ct state established,related accept
-                ip daddr 127.0.0.0/8 tcp dport 8888 accept
-                ip daddr { 100.100.100.100 } meta l4proto { tcp, udp } th dport 53 accept
-                ip6 daddr { fd7a:115c:a1e0::53 } meta l4proto { tcp, udp } th dport 53 accept
-                ip daddr { 127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 169.254.0.0/16, 100.64.0.0/10, 224.0.0.0/4 } counter drop
-                ip6 daddr { ::1, fe80::/10, fc00::/7, ff00::/8 } counter drop
-        }
+	chain out {
+		type filter hook output priority filter; policy accept;
+		meta skuid != 1002 accept
+		ct state established,related accept
+
+		ip daddr 127.0.0.0/8 tcp dport 8888 accept
+		ip daddr 127.0.0.0/8 meta mark set meta mark | 0x40000000 accept
+		ip daddr { 100.100.100.100 } meta l4proto { tcp, udp } th dport 53 accept
+		ip6 daddr { fd7a:115c:a1e0::53 } meta l4proto { tcp, udp } th dport 53 accept
+
+		ip daddr { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 169.254.0.0/16, 100.64.0.0/10, 224.0.0.0/4 } counter drop
+		ip6 daddr { ::1, fe80::/10, fc00::/7, ff00::/8 } counter drop
+	}
+
+	chain in {
+		type filter hook input priority filter; policy accept;
+		iif "lo" meta mark & 0x40000000 == 0x40000000 jump claude_loopback
+	}
+
+	chain claude_loopback {
+		socket cgroupv2 level 1 "claude.slice" accept
+		counter drop
+	}
 }

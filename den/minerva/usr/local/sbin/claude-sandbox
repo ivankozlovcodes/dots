@@ -17,7 +17,7 @@ systemctl is-active --quiet claude-egress.service || { echo "claude-sandbox: cla
 
 if [ -t 0 ] && [ -t 1 ]; then io=(--pty); else io=(--pipe --wait); fi
 
-exec systemd-run "${io[@]}" --quiet --collect \
+exec systemd-run "${io[@]}" --quiet --collect --slice=claude.slice \
 	--unit="claude-sandbox-$(date +%s)-$$" \
 	--description="sandboxed claude session (claude-sandbox)" \
 	--uid=claude --gid=claude \

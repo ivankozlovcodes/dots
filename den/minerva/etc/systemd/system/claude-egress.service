@@ -1,5 +1,7 @@
 [Unit]
-Description=nftables: claude may reach loopback only on tcp 8888 (SearXNG)
+Description=nftables: claude egress policy (internet, SearXNG, own loopback sockets only)
+Requires=claude.slice
+After=claude.slice
 Before=claude-herdr.service
 
 [Service]
