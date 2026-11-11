@@ -1,0 +1,56 @@
+# The hc machine "claude": claude's own herdr-core, boxed like claude-herdr.service.
+# Every terminal, holder and exec is a child of this core, so all of claude's programs on
+# this machine run as claude in /claude.slice/claude-hc.service with the limits below.
+# minerva reaches it with: hc machine add --via "sudo -n /usr/local/sbin/claude-hc-via" --name claude
+# Fail closed: the socket lives in RuntimeDirectory (removed on stop; claude cannot create
+# /run/claude-hc) and the state in StateDirectory (read-only to other boxed claude units).
+# Keep the sandbox block in sync with claude-herdr.service (+ drop-ins) and claude-sandbox.
+[Unit]
+Description=hc core for the claude machine (boxed claude terminals)
+Wants=network-online.target
+Requires=claude-egress.service
+After=network-online.target claude-egress.service
+
+[Service]
+Type=simple
+User=claude
+Group=claude
+SupplementaryGroups=pi-shared owl-clients
+Slice=claude.slice
+WorkingDirectory=/home/claude
+# root-owned herdr-core first; claude's pi after it, for tabs started with argv ["pi"]
+Environment=PATH=/usr/local/bin:/usr/bin:/bin:/home/claude/.pi/agent/bin:/home/claude/.local/share/pi-node/current/bin
+Environment=SHELL=/bin/bash LANG=C.UTF-8
+Environment=XDG_RUNTIME_DIR=/run/claude-hc XDG_STATE_HOME=/var/lib/claude-hc
+RuntimeDirectory=claude-hc
+RuntimeDirectoryMode=0700
+StateDirectory=claude-hc
+StateDirectoryMode=0700
+UMask=0002
+ExecStart=/usr/local/bin/herdr-core serve
+Restart=on-failure
+RestartSec=5
+
+# --- filesystem: only claude's home + shared workspace are visible/writable
+ProtectSystem=strict
+ProtectHome=tmpfs
+BindPaths=/home/claude /srv/work
+ReadWritePaths=/home/claude /srv/work
+PrivateTmp=yes
+NoNewPrivileges=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+
+# --- network (cgroup BPF); loopback only because claude-egress limits it to SearXNG
+IPAddressDeny=localhost link-local multicast 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 100.64.0.0/10 fc00::/7
+IPAddressAllow=100.100.100.100 fd7a:115c:a1e0::53 127.0.0.1
+
+# --- resources: one budget for the whole machine
+MemoryHigh=4G
+MemoryMax=5G
+CPUQuota=400%
+TasksMax=2048
+
+[Install]
+WantedBy=multi-user.target
