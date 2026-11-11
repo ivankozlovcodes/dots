@@ -1,0 +1,64 @@
+# The hc machine "owl": owl's own herdr-core, boxed like owl.service used to be.
+# The serving pi runs in it as terminal "librarian" (started by start-owl-hc.sh); every
+# terminal, holder and exec is a child of this core, so all of it runs as owl in
+# /owl.slice/owl-hc.service with the locks below.
+# minerva reaches it with: hc machine add --via "sudo -n /usr/local/sbin/owl-hc-via" --name owl
+# Fail closed: socket in RuntimeDirectory (removed on stop), state in StateDirectory.
+# Keep the sandbox block in sync with /usr/local/sbin/owl-hc-via and owl-sandbox.
+[Unit]
+Description=hc core for the owl machine (boxed read-only librarian)
+Wants=network-online.target
+Requires=home-owl-obsidian.mount
+After=network-online.target systemd-tmpfiles-setup.service home-owl-obsidian.mount
+RequiresMountsFor=/home/owl/obsidian
+Conflicts=owl.service
+
+[Service]
+Type=simple
+User=owl
+Group=owl
+Slice=owl.slice
+WorkingDirectory=/home/owl
+Environment=HOME=/home/owl
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+Environment=PI_OFFLINE=1
+Environment=SHELL=/bin/bash LANG=C.UTF-8
+Environment=XDG_RUNTIME_DIR=/run/owl-hc XDG_STATE_HOME=/var/lib/owl-hc
+RuntimeDirectory=owl-hc
+RuntimeDirectoryMode=0700
+StateDirectory=owl-hc
+StateDirectoryMode=0700
+UMask=0077
+ExecStart=/usr/local/bin/herdr-core serve
+ExecStartPost=/usr/local/lib/owl/start-owl-hc.sh
+Restart=on-failure
+RestartSec=5
+
+# filesystem: own home read-only except pi/herdr state, the vault mount read-only, nothing else from /home
+ProtectSystem=strict
+ProtectHome=tmpfs
+BindReadOnlyPaths=/home/owl
+ReadWritePaths=-/home/owl/.pi/agent -/home/owl/.config -/home/owl/.cache -/home/owl/.local/state /run/owl
+InaccessiblePaths=-/home/owl/obsidian/.pi
+# pi/memory in both vaults is denied to owl-ro by a NAS ACL; systemd cannot mask it (stat gets EACCES)
+InaccessiblePaths=-/home/owl/obsidian/sb/.obsidian -/home/owl/obsidian/sb/.trash -/home/owl/obsidian/sb/.pi -/home/owl/obsidian/sb/.password
+InaccessiblePaths="-/home/owl/obsidian/Second Brain/.obsidian" "-/home/owl/obsidian/Second Brain/.trash" "-/home/owl/obsidian/Second Brain/.pi" "-/home/owl/obsidian/Second Brain/.password"
+PrivateTmp=yes
+NoNewPrivileges=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictNamespaces=yes
+LockPersonality=yes
+
+# network: brainz only (the SMB mount is kernel traffic, not this unit's)
+IPAddressDeny=any
+IPAddressAllow=192.168.8.4
+
+# resources: one budget for the whole machine
+MemoryMax=4G
+CPUQuota=200%
+TasksMax=512
+
+[Install]
+WantedBy=multi-user.target

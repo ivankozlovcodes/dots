@@ -1,0 +1,45 @@
+#!/bin/bash
+# owl-hc-via: hc's --via command for the machine "owl" (owl-hc.service).
+#   hc machine add --via "sudo -n /usr/local/sbin/owl-hc-via" --name owl
+# hc passes one shell line (it starts `herdr-core connect`) as the last argument. It runs as
+# owl in a boxed transient unit in owl.slice; stdio is passed through untouched.
+# Keep the -p properties in sync with /etc/systemd/system/owl-hc.service and owl-sandbox.
+set -euo pipefail
+[ "$(id -u)" = 0 ] || { echo "owl-hc-via: must run as root (sudo -n)" >&2; exit 1; }
+[ $# -ge 1 ] || { echo "owl-hc-via: no shell line given" >&2; exit 2; }
+line=${!#}
+VAULT=/home/owl/obsidian
+
+# fail closed: no vault mount or no core means no connection
+for u in home-owl-obsidian.mount owl-hc.service; do
+	systemctl is-active --quiet "$u" || { echo "owl-hc-via: $u is not active" >&2; exit 1; }
+done
+
+exec systemd-run --pipe --wait --quiet --collect --slice=owl.slice \
+	--unit="owl-hc-via-$(date +%s%N)" \
+	--description="hc connection to the owl machine (owl-hc-via)" \
+	--uid=owl --gid=owl \
+	-p WorkingDirectory=/home/owl \
+	-E HOME=/home/owl -E USER=owl -E LOGNAME=owl -E SHELL=/bin/bash \
+	-E PATH=/usr/local/bin:/usr/bin:/bin -E PI_OFFLINE=1 \
+	-E XDG_RUNTIME_DIR=/run/owl-hc -E XDG_STATE_HOME=/var/lib/owl-hc \
+	-E LANG=C.UTF-8 \
+	-p UMask=0077 \
+	-p ProtectSystem=strict \
+	-p ProtectHome=tmpfs \
+	-p BindReadOnlyPaths=/home/owl \
+	-p ReadWritePaths="-/home/owl/.pi/agent -/home/owl/.config -/home/owl/.cache -/home/owl/.local/state" \
+	-p InaccessiblePaths="/run/owl -/home/owl/.config/herdr" \
+	-p InaccessiblePaths="-$VAULT/.pi -$VAULT/sb/.obsidian -$VAULT/sb/.trash -$VAULT/sb/.pi -$VAULT/sb/.password" \
+	-p InaccessiblePaths="'-$VAULT/Second Brain/.obsidian' '-$VAULT/Second Brain/.trash' '-$VAULT/Second Brain/.pi' '-$VAULT/Second Brain/.password'" \
+	-p PrivateTmp=yes \
+	-p NoNewPrivileges=yes \
+	-p ProtectKernelTunables=yes \
+	-p ProtectKernelModules=yes \
+	-p ProtectControlGroups=yes \
+	-p RestrictNamespaces=yes \
+	-p LockPersonality=yes \
+	-p IPAddressDeny=any \
+	-p IPAddressAllow=192.168.8.4 \
+	-p MemoryMax=512M -p CPUQuota=100% -p TasksMax=64 \
+	-- /bin/sh -c "$line"
