@@ -1,0 +1,19 @@
+#!/bin/bash
+# hc-relay: sshd ForceCommand for the users claude and owl (see /etc/ssh/sshd_config.d/50-hc-relay.conf).
+# An ssh login as claude/owl can only relay hc's protocol to that user's boxed core
+# (claude-hc.service / owl-hc.service). No shell. Every program runs inside the core's unit.
+# Fail closed: if the core is down its socket folder is gone and this user cannot create it.
+set -u
+u=$(id -un)
+case "$u" in claude|owl) ;; *) echo "hc-relay: not for $u" >&2; exit 1 ;; esac
+export XDG_RUNTIME_DIR=/run/$u-hc XDG_STATE_HOME=/var/lib/$u-hc PATH=/usr/local/bin:/usr/bin:/bin
+unset HC_SOCKET HC_SESSION HC_TERMINAL_SOCKET HC_TERMINAL_ID
+line=${SSH_ORIGINAL_COMMAND-}
+logger -t hc-relay -- "$u from ${SSH_CLIENT%% *}: ${line:0:160}"
+case "$line" in
+	*'exec "$p" connect'* | 'herdr-core connect' | 'hc connect')
+		[ -S "$XDG_RUNTIME_DIR/herdr-core/default.sock" ] || { echo "hc-relay: the $u machine is down" >&2; exit 1; }
+		exec /usr/local/bin/herdr-core connect ;;
+	'uname -sm' | 'id -u') exec /bin/sh -c "$line" ;;
+	*) echo "hc-relay: this login only relays hc (hc machine add $u@<host>)" >&2; exit 126 ;;
+esac
