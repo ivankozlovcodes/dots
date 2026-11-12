@@ -6,7 +6,6 @@
   "conform.nvim": { "branch": "master", "commit": "619363c30309d29ffa631e67c8183f2a72caa373" },
   "diffview.nvim": { "branch": "main", "commit": "4516612fe98ff56ae0415a259ff6361a89419b0a" },
   "focus.nvim": { "branch": "master", "commit": "36ebedeebe82ebea250c9d671769194caa033902" },
-  "fyler.nvim": { "branch": "stable", "commit": "70e1202434a21b45649dd59ec82dc3330f79125e" },
   "gitsigns.nvim": { "branch": "main", "commit": "31d6fb2d618bca1482b9f274751ead5f03461408" },
   "hlchunk.nvim": { "branch": "main", "commit": "4ddc056e4ca45f1c7dc6aa21935df710b263b1aa" },
   "lazy-workspaces.nvim": { "branch": "main", "commit": "64217b3c2c045a3a5344556d83a20b4b1105829f" },
