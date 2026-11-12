@@ -1,8 +1,8 @@
 {
   "place": "none",
-  "title": "Tabs",
+  "title": "Pane header",
   "cloned_from": {
-    "name": "tabs",
+    "name": "pane",
     "version": "0.1.15"
   }
 }

@@ -76,15 +76,38 @@
       "type": "column",
       "children": [
         {
-          "id": "tabs",
-          "type": "block",
-          "content": {
-            "mod": "iv-tabs"
-          },
+          "id": "tab-bar",
+          "type": "row",
           "size": {
             "px": 42
           },
-          "window_drag": true
+          "resizable": false,
+          "children": [
+            {
+              "id": "tabs",
+              "type": "block",
+              "content": {
+                "mod": "tabs"
+              },
+              "window_drag": true
+            },
+            {
+              "id": "tabhost-buttons",
+              "type": "block",
+              "size": {
+                "px": 90
+              },
+              "window_drag": true,
+              "content": {
+                "mod": "tab-host",
+                "props": {
+                  "stack": "panel-body",
+                  "panel": "panel",
+                  "buttons": true
+                }
+              }
+            }
+          ]
         },
         {
           "id": "work-body",
@@ -98,7 +121,7 @@
                 "pane": {
                   "header": {
                     "content": {
-                      "mod": "pane"
+                      "mod": "iv-pane"
                     },
                     "reveal": "always",
                     "height": 30,
@@ -142,7 +165,7 @@
                       }
                     },
                     {
-                      "id": "obsidian",
+                      "id": "tabhost-obsidian",
                       "type": "block",
                       "content": {
                         "mod": "obsidian",

@@ -1,1 +1,1 @@
-{ "place": "none", "focusable": true, "overlay": { "kind": "popup", "at": "top", "offset": 40, "width": 760, "height": 560 } }
+{"place": "none", "focusable": true, "overlay": {"kind": "popup", "at": "top", "offset": 40, "width": 760, "height": 560}, "tab": {"title": "Notes", "icon": "mods/obsidian/file-text.svg"}}
