@@ -1,0 +1,9 @@
+[Unit]
+Description=Mirror remote agent sessions for Herdr Insights
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/insights-mirror
+Nice=10
+IOSchedulingClass=idle

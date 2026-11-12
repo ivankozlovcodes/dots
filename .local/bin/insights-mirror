@@ -1,0 +1,35 @@
+#!/bin/sh
+# Mirrors other machines' agent session files here so the Herdr Insights mod
+# (which only reads local folders) can count them. Read-only on the remote;
+# never deletes locally, so history survives remote cleanup.
+#
+#   insights-mirror            sync every host below
+#   insights-mirror minerva    sync one
+#
+# Mirror: ~/.local/share/insights-mirror/<host>/{pi-sessions,claude-projects}
+# Added as extra roots on the Pi and Claude sources in Insights' settings.
+# Run by insights-mirror.timer (systemd --user).
+
+set -eu
+
+dest_root=${INSIGHTS_MIRROR_DIR:-$HOME/.local/share/insights-mirror}
+hosts=${*:-minerva}
+
+# remote path -> local subfolder
+pairs='.pi/agent/sessions pi-sessions
+.claude/projects claude-projects'
+
+status=0
+for host in $hosts; do
+	echo "$pairs" | while read -r remote local; do
+		mkdir -p "$dest_root/$host/$local"
+		# BatchMode: never prompt (fails quietly if the SSH agent is locked).
+		if ! rsync -rt --partial --timeout=60 --chmod=Du=rwx,Fu=rw,go= \
+			-e 'ssh -o BatchMode=yes -o ConnectTimeout=10' \
+			"$host:$remote/" "$dest_root/$host/$local/"; then
+			echo "insights-mirror: $host:$remote failed" >&2
+			exit 1
+		fi
+	done || status=1
+done
+exit "$status"
