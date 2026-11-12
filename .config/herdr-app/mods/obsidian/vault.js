@@ -290,9 +290,7 @@ export async function openUrl(url) {
 
 export async function openInObsidian(rel) {
   const { root } = await config();
-  await openUrl(`obsidian://open?path=${encodeURIComponent(`${root}/${rel}`)}`);
-  // Hyprland ignores Obsidian's activation request (focus_on_activate off): jump to its window.
-  await exec("hyprctl", ["dispatch", "focuswindow", "class:^(md\\.obsidian\\.Obsidian|obsidian)$"]).catch(() => {});
+  return openUrl(`obsidian://open?path=${encodeURIComponent(`${root}/${rel}`)}`);
 }
 
 export async function openInEditor(rel, line) {
