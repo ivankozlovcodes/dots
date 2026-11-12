@@ -292,7 +292,8 @@ export async function openInObsidian(rel) {
   const { root } = await config();
   await openUrl(`obsidian://open?path=${encodeURIComponent(`${root}/${rel}`)}`);
   // Hyprland ignores Obsidian's activation request (focus_on_activate off): jump to its window.
-  await exec("hyprctl", ["dispatch", "focuswindow", "class:^(md\\.obsidian\\.Obsidian|obsidian)$"]).catch(() => {});
+  // Lua-config Hyprland evaluates dispatches as Lua; focus by address like hypr/scripts/window-switcher.sh.
+  await exec("sh", ["-c", `addr=$(hyprctl clients -j | python3 -c 'import json,sys; print(next((w["address"] for w in json.load(sys.stdin) if w.get("mapped") and w["class"].lower() in ("md.obsidian.obsidian","obsidian")), ""))') && [ -n "$addr" ] && hyprctl dispatch "hl.dsp.focus({window=\\"address:$addr\\"})"`]).catch(() => {});
 }
 
 export async function openInEditor(rel, line) {
