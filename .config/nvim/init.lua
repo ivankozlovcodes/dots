@@ -1,4 +1,9 @@
 -- ~/.config/nvim/init.lua
+
+-- Must be set before lazy loads any plugin, or <leader> maps bind to "\".
+vim.g.mapleader = " "
+vim.g.maplocalleader = " "
+
 local lwpath = vim.fn.stdpath("data") .. "/lazy/lazy-workspaces.nvim"
 if not (vim.uv or vim.loop).fs_stat(lwpath) then
   vim.fn.system({
