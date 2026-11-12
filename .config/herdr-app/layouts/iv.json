@@ -29,7 +29,7 @@
               "id": "spaces",
               "type": "block",
               "content": {
-                "mod": "spaces"
+                "mod": "iv-spaces"
               },
               "size": {
                 "weight": 1
@@ -78,10 +78,6 @@
         {
           "id": "tab-bar",
           "type": "row",
-          "size": {
-            "px": 42
-          },
-          "resizable": false,
           "children": [
             {
               "id": "tabs",
@@ -94,10 +90,6 @@
             {
               "id": "tabhost-buttons",
               "type": "block",
-              "size": {
-                "px": 90
-              },
-              "window_drag": true,
               "content": {
                 "mod": "tab-host",
                 "props": {
@@ -105,9 +97,17 @@
                   "panel": "panel",
                   "buttons": true
                 }
-              }
+              },
+              "size": {
+                "px": 90
+              },
+              "window_drag": true
             }
-          ]
+          ],
+          "size": {
+            "px": 42
+          },
+          "resizable": false
         },
         {
           "id": "work-body",
@@ -162,6 +162,13 @@
                       "type": "block",
                       "content": {
                         "mod": "changes"
+                      }
+                    },
+                    {
+                      "id": "tabhost-insights",
+                      "type": "block",
+                      "content": {
+                        "mod": "insights"
                       }
                     },
                     {
