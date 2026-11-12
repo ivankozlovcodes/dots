@@ -59,7 +59,8 @@
     "ctrl-shift-l": "layout.switch",
     "f2": "tab.rename",
     "shift-f2": "space.rename",
-    "ctrl-shift-a": "layout.toggle:subagents"
+    "ctrl-shift-a": "layout.toggle:subagents",
+    "ctrl-shift-space": "mod.open:obsidian"
   },
   "terminal": {
     "ctrl-backspace": "send:\u0017",
@@ -71,5 +72,11 @@
     "ctrl-v": "terminal.paste_image",
     "ctrl-insert": "terminal.copy",
     "shift-insert": "terminal.paste"
+  },
+  "mod:obsidian": {
+    "ctrl-j": "obsidian.next",
+    "ctrl-k": "obsidian.prev",
+    "alt-enter": "obsidian.send",
+    "ctrl-s": "obsidian.save"
   }
 }
