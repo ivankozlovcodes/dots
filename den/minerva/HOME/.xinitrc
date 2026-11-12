@@ -1,5 +1,9 @@
-xset s 1800
-xset dpms 1800 1800 1800
+xset s off
+xset -dpms
+
+# Hide the cursor instantly
+unclutter -idle 0 &
+
 exec /usr/bin/chromium \
   --kiosk \
   --no-sandbox \
