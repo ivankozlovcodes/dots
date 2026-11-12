@@ -1,0 +1,8 @@
+{
+  "personal": {
+    "myconfig\/common": true,
+    "myconfig\/experimental": true,
+    "myconfig\/personal": true,
+    "myconfig\/vscode": true
+  }
+}
