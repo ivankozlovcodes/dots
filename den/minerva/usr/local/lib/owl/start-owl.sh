@@ -3,7 +3,7 @@
 set -euo pipefail
 log() { echo "start-owl: $*" >&2; }
 
-PI='/home/owl/.pi/agent/bin/pi --offline -ne -nc -ns -np -na --no-themes --no-mcp --continue -e /home/owl/.pi/agent/extensions/owl/index.ts --tools read,grep,find,ls,owl_reply,owl_complain,owl_message'
+PI='/home/owl/.pi/agent/bin/pi --offline -ne -nc -ns -np -na --no-themes --no-mcp --continue --thinking medium -e /home/owl/.pi/agent/extensions/owl/index.ts --tools read,grep,find,ls,owl_reply,owl_complain,owl_message'
 VAULT=/home/owl/obsidian
 
 up=0
