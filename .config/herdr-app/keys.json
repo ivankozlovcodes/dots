@@ -78,5 +78,39 @@
     "ctrl-k": "obsidian.prev",
     "alt-enter": "obsidian.send",
     "ctrl-s": "obsidian.save"
+  },
+  "mod:ob-sessions": {
+    "f2": "ob-sessions.rename",
+    "delete": "ob-sessions.close",
+    "ctrl-enter": "ob-sessions.open-right"
+  },
+  "layout:vaultr": {
+    "ctrl-p": "mod.open:ob-switcher",
+    "ctrl-shift-p": "app.palette",
+    "ctrl-b": "layout.toggle:ob-left",
+    "ctrl-shift-b": "layout.toggle:ob-right",
+    "ctrl-\\": "pane.split:right",
+    "ctrl-shift-\\": "pane.split:down",
+    "ctrl-|": "pane.split:down",
+    "ctrl-shift-e": "ob-tabs.open:ob-sessions@reveal",
+    "ctrl-shift-m": "ob-tabs.switcher:move",
+    "ctrl-shift-c": "ob-tabs.copy-path",
+    "ctrl-alt-c": "ob-tabs.copy-path",
+    "ctrl-shift-d": "ob-tabs.daily",
+    "ctrl-shift-f": "ob-tabs.open:ob-search",
+    "ctrl-alt-f": "ob-tabs.open:ob-search",
+    "ctrl-shift-g": "ob-tabs.open:ob-graph",
+    "ctrl-shift-a": "ob-tabs.toggle:ob-subagents",
+    "ctrl-alt-o": "ob-tabs.open:ob-outline",
+    "ctrl-alt-i": "ob-tabs.open:ob-props",
+    "ctrl-alt-a": "ob-tabs.open:ob-agents",
+    "ctrl-alt-b": "ob-tabs.bookmark",
+    "ctrl-alt-left": "ob-tabs.back",
+    "ctrl-alt-right": "ob-tabs.forward",
+    "ctrl-9": "ob-tabs.last",
+    "ctrl-alt-k": "mod.open:ob-hotkeys",
+    "ctrl-alt-t": "ob-tabs.tab-list",
+    "ctrl-shift-z": "ob-tabs.zen",
+    "ctrl-alt-z": "ob-tabs.zen"
   }
 }
