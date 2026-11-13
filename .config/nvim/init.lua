@@ -15,6 +15,6 @@ vim.opt.rtp:prepend(lwpath)
 
 require("lazy-workspaces").setup({
   configs = {
-    personal = { source = "/home/minerva/git/nvim.conf.d" },
+    personal = { source = "~/git/nvim.conf.d" },
   },
 })
