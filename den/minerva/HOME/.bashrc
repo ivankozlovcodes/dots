@@ -116,8 +116,7 @@ if ! shopt -oq posix; then
 fi
 export PATH="$HOME/.local/bin:$HOME/go/bin:$PATH"
 
-# Pi Coding Agent Memory (Obsidian Vault Integration)
-export PI_MEMORY_SUMMARIZE_TRANSITIONS=1
-export PI_MEMORY_QMD_UPDATE="background"
-export PI_MEMORY_DIR=/home/minerva/obsidian/sb/pi/memory
+# Pi memory (agentmemory; migrated from pi-memory, see ~/git/agentmemory-migrate)
 export AGENTMEMORY_URL=http://127.0.0.1:3111
+# One memory scope for every pi session, whatever the cwd (migrated memories live here).
+export AGENTMEMORY_PROJECT_NAME=minerva
