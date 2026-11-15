@@ -6,9 +6,13 @@ After=network-online.target
 ContainerName=agentmemory
 # Pinned to the v0.9.33 release (git tag and Docker Hub tag); bump deliberately, never latest.
 Image=docker.io/ghumarerohit/agentmemory:0.9.33
-# Loopback only: REST API (3111) and viewer (3113).
+# REST API (3111) loopback only; viewer (3113) on the LAN for the phone. The viewer
+# proxies the API with the bearer, so 3111 never needs to leave the host.
 PublishPort=127.0.0.1:3111:3111
-PublishPort=127.0.0.1:3113:3113
+PublishPort=3113:3113
+# The viewer rejects Host/Origin values not listed here.
+Environment=VIEWER_ALLOWED_HOSTS=192.168.8.69:3113,minerva:3113,localhost:3113,127.0.0.1:3113
+Environment=VIEWER_ALLOWED_ORIGINS=http://192.168.8.69:3113,http://minerva:3113,http://localhost:3113,http://127.0.0.1:3113
 # Keep host minerva (uid 1000) as the in-container node user so /data files are owned by minerva.
 # keep-id would start the process as uid 1000, but the entrypoint must start as root to gosu to node;
 # User=0 is the image default and maps to a subuid on the host.
