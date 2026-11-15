@@ -1,0 +1,36 @@
+[Unit]
+Description=Infradeck backend (API, metrics intake, alerts)
+After=network-online.target infradeck-postgres.service infradeck-redis.service
+Wants=infradeck-postgres.service infradeck-redis.service
+
+[Container]
+ContainerName=infradeck-backend
+# Built locally from the v1.0.0 tag (no published image is pullable):
+#   cd ~/git/infradeck && git checkout v1.0.0 && podman build -f docker/backend.Dockerfile -t localhost/infradeck-backend:1.0.0 .
+Image=localhost/infradeck-backend:1.0.0
+Pull=never
+Network=infradeck-data.network
+Network=infradeck-front.network:alias=backend
+Secret=infradeck_database_url,type=env,target=DATABASE_URL
+Secret=infradeck_redis_url,type=env,target=REDIS_URL
+# Encrypts TOTP secrets. Without it two-factor can't be set up, and admins are required to use it by default.
+Secret=infradeck_secrets_key,type=env,target=SECRETS_KEY
+# Served over HTTPS by tailscale serve, so the session cookie is HTTPS-only. Only the first account may register.
+Environment=SESSION_COOKIE_SECURE=true
+Environment=ALLOW_REGISTRATION=false
+Environment=CORS_ORIGINS=https://minerva.tail9e3eb4.ts.net:8446
+# Collector endpoints answer only through the collector gate (the local collector uses its internal listener).
+Environment=COLLECTOR_ACCESS=strict
+# ADMIN_BOOTSTRAP_TOKEN left unset: the setup token is printed once in the log (podman logs infradeck-backend).
+ReadOnly=true
+Tmpfs=/tmp
+# No container healthcheck: the health endpoint is /api/health on the frontend (checked by hand), and nothing waits on it.
+DropCapability=ALL
+NoNewPrivileges=true
+
+[Service]
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target

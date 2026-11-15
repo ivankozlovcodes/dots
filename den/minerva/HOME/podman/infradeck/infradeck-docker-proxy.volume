@@ -1,0 +1,3 @@
+[Volume]
+VolumeName=infradeck-docker-proxy
+# Shares the proxy's Unix socket with the collector. Nothing else mounts it.

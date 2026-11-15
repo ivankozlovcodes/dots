@@ -1,0 +1,35 @@
+[Unit]
+Description=Infradeck collector for minerva (the dashboard host)
+After=network-online.target infradeck-collector-gate.service infradeck-docker-proxy.service
+Wants=infradeck-collector-gate.service infradeck-docker-proxy.service
+
+[Container]
+ContainerName=infradeck-collector
+# Built locally from the v1.0.0 tag (see infradeck-backend.container for the pattern).
+Image=localhost/infradeck-collector:1.0.0
+Pull=never
+Network=infradeck-collector.network
+Environment=INFRADECK_API_URL=http://collector-gate:8080/api
+# Marks this machine as the dashboard host (the charts at the top). It appears under "New servers detected"
+# and needs an admin to click Add, which requires the admin's two-factor sign-in.
+Environment=INFRADECK_DASHBOARD_HOST=true
+Environment=INFRADECK_DOCKER_HOST=/run/docker-proxy/docker.sock
+Environment=INFRADECK_CHECK_INTERVAL_SECONDS=60
+# Read-only host view with no capabilities: as rootless root it reads what minerva can read.
+Volume=/proc:/host/proc:ro
+Volume=/:/hostfs:ro
+Volume=/home/minerva/appdata/infradeck/collector:/var/lib/infradeck-collector
+# Docker data arrives through the read-only docker proxy; this container never sees the socket.
+Volume=infradeck-docker-proxy.volume:/run/docker-proxy:ro
+DropCapability=ALL
+NoNewPrivileges=true
+ReadOnly=true
+# Lets "Ping" checks use an unprivileged ICMP socket. Namespaced to this container; no capability granted.
+Sysctl="net.ipv4.ping_group_range=0 0"
+
+[Service]
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target

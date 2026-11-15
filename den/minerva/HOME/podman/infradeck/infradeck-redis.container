@@ -1,0 +1,26 @@
+[Unit]
+Description=Infradeck Redis
+After=network-online.target
+
+[Container]
+ContainerName=infradeck-redis
+# Digest from docker-compose.server.yml of Infradeck v1.0.0; bump with that release.
+Image=docker.io/library/redis:7.4.12-alpine@sha256:c5d34a98396a4775e223c74e929162c35c5a2182901ba26b50ade939941ce14b
+Pull=never
+Network=infradeck-data.network:alias=redis
+# Redis holds the login sessions, so it requires a password. The shell reads it from the environment ($$ is systemd's escape for $).
+Secret=infradeck_redis_password,type=env,target=REDIS_PASSWORD
+Exec=sh -c 'exec docker-entrypoint.sh redis-server --appendonly yes --requirepass "$$REDIS_PASSWORD"'
+Volume=/home/minerva/appdata/infradeck/redis:/data
+# Only what the image's entrypoint needs to hand /data to the redis user and drop root.
+DropCapability=ALL
+AddCapability=CHOWN DAC_READ_SEARCH SETUID SETGID
+NoNewPrivileges=true
+ReadOnly=true
+
+[Service]
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target

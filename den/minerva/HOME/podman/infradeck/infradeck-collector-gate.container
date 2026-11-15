@@ -1,0 +1,27 @@
+[Unit]
+Description=Infradeck collector gate
+After=network-online.target infradeck-backend.service
+
+[Container]
+ContainerName=infradeck-collector-gate
+# Digest from docker-compose.server.yml of Infradeck v1.0.0; bump with that release.
+Image=docker.io/library/nginx:1.31.8-alpine@sha256:713fc2ebfd92e8217db451477182ee91944b123d2b1ee9fd5a8c6e91ca6c3a11
+Pull=never
+Network=infradeck-front.network
+Network=infradeck-collector.network:alias=collector-gate
+# Gate config from the same v1.0.0 checkout as the images (~/git/infradeck). Serves the collector endpoints only. Port 8081 (VPN listener) is deliberately not published: the trial has no remote collectors.
+# Adding a remote server means publishing 8081 on the VPN address only (upstream COLLECTOR_BIND).
+Volume=/home/minerva/git/infradeck/docker/nginx.collector.conf:/etc/nginx/conf.d/default.conf:ro
+ReadOnly=true
+Tmpfs=/var/cache/nginx
+Tmpfs=/var/run
+DropCapability=ALL
+AddCapability=CHOWN SETGID SETUID
+NoNewPrivileges=true
+
+[Service]
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target

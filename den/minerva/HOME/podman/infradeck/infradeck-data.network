@@ -1,0 +1,4 @@
+[Network]
+NetworkName=infradeck-data
+# No route out: PostgreSQL and Redis are reachable only from the backend (same as the upstream "data" network).
+Internal=true

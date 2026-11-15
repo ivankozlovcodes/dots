@@ -1,0 +1,28 @@
+[Unit]
+Description=Infradeck PostgreSQL
+After=network-online.target
+
+[Container]
+ContainerName=infradeck-postgres
+# Digest from docker-compose.server.yml of Infradeck v1.0.0; bump with that release.
+Image=docker.io/library/postgres:16.15-alpine@sha256:aa6cb33cf4c19c765cefcf48d96176258800870a9a1e930ad126200f9d825139
+Pull=never
+Network=infradeck-data.network:alias=postgres
+Secret=infradeck_postgres_password,type=env,target=POSTGRES_PASSWORD
+Environment=POSTGRES_DB=infradeck
+Environment=POSTGRES_USER=infradeck
+Volume=/home/minerva/appdata/infradeck/postgres:/var/lib/postgresql/data
+# The entrypoint prepares the data dir as root, then runs PostgreSQL as its own user; these are the only capabilities that takes.
+DropCapability=ALL
+AddCapability=CHOWN DAC_READ_SEARCH FOWNER SETUID SETGID
+NoNewPrivileges=true
+ReadOnly=true
+Tmpfs=/var/run/postgresql
+Tmpfs=/tmp
+
+[Service]
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,26 @@
+[Unit]
+Description=Infradeck read-only Docker API proxy
+After=network-online.target podman.socket
+Wants=podman.socket
+
+[Container]
+ContainerName=infradeck-docker-proxy
+# Built locally from the v1.0.0 tag (see infradeck-backend.container for the pattern).
+Image=localhost/infradeck-docker-proxy:1.0.0
+Pull=never
+# No network at all. It talks to the collector only through the Unix socket in the shared volume.
+Network=none
+# Rootless podman's API socket instead of a root Docker socket. The :ro flag doesn't stop writes to a socket: the
+# proxy's allowlist (src/collector/docker_proxy.py, six GET requests) is what keeps this read-only.
+Volume=/run/user/1000/podman/podman.sock:/var/run/docker.sock:ro
+Volume=infradeck-docker-proxy.volume:/run/docker-proxy
+DropCapability=ALL
+NoNewPrivileges=true
+ReadOnly=true
+
+[Service]
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target

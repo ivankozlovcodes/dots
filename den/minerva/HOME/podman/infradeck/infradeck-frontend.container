@@ -1,0 +1,31 @@
+[Unit]
+Description=Infradeck dashboard (nginx, /api to the backend)
+After=network-online.target infradeck-backend.service
+
+[Container]
+ContainerName=infradeck-frontend
+# Built locally from the v1.0.0 tag. The repo's Dockerfile has an unqualified nginx base, which this podman can't resolve,
+# so build from a copy with `FROM docker.io/library/nginx:1.31.8-alpine@sha256:…` (same digest):
+#   sed 's#^FROM nginx:#FROM docker.io/library/nginx:#' docker/frontend.Dockerfile > /tmp/infradeck-frontend.Dockerfile
+#   podman build -f /tmp/infradeck-frontend.Dockerfile -t localhost/infradeck-frontend:1.0.0 .
+Image=localhost/infradeck-frontend:1.0.0
+Pull=never
+Network=infradeck-front.network:alias=frontend
+# Loopback only. Phone access is HTTPS through tailscale (one-time setup, persists in tailscaled's config):
+#   tailscale serve --bg --https=8446 http://127.0.0.1:5173
+PublishPort=127.0.0.1:5173:8080
+# Strict public listener from the same checkout as the images (~/git/infradeck at v1.0.0): refuses the collector endpoints.
+Volume=/home/minerva/git/infradeck/docker/nginx.strict.conf:/etc/nginx/conf.d/default.conf:ro
+DropCapability=ALL
+NoNewPrivileges=true
+ReadOnly=true
+Tmpfs=/tmp
+Tmpfs=/var/cache/nginx:mode=1777
+Tmpfs=/etc/nginx/trusted-proxies:mode=1777
+
+[Service]
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target
