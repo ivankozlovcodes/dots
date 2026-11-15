@@ -120,3 +120,5 @@ export PATH="$HOME/.local/bin:$HOME/go/bin:$PATH"
 export AGENTMEMORY_URL=http://127.0.0.1:3111
 # One memory scope for every pi session, whatever the cwd (migrated memories live here).
 export AGENTMEMORY_PROJECT_NAME=minerva
+# Don't store untrusted web content as memory (memory-poisoning risk).
+export AGENTMEMORY_CAPTURE_DENY=web_search,fetch_content,browser
