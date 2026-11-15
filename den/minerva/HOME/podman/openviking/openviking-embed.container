@@ -1,0 +1,22 @@
+[Unit]
+Description=OpenViking embeddings (llama.cpp, bge-small-en-v1.5, CPU)
+
+[Container]
+ContainerName=openviking-embed
+# Pinned to llama.cpp build b5350 (GHCR tag); bump deliberately, never latest.
+Image=ghcr.io/ggml-org/llama.cpp:server-b5350
+Pod=openviking.pod
+# GGUF from CompendiumLabs/bge-small-en-v1.5-gguf (bge-small-en-v1.5-f16.gguf, 384 dims),
+# sha256 f0b2fef971e8366438bfd2d9aefea1b0115919389448806d290237f638bae999. Matches ov.conf.
+Volume=/home/minerva/appdata/openviking/models:/models:ro
+# Shares the pod's network namespace, so OpenViking reaches it at http://127.0.0.1:8080/v1.
+# Not published to the host. 4 slots x 512 tokens (bge-small max input).
+# Batch sizes must cover all slots combined: llama.cpp asserts when a packed batch exceeds ubatch.
+Exec=--model /models/bge-small-en-v1.5-f16.gguf --embeddings --pooling cls --host 127.0.0.1 --port 8080 --threads 4 --parallel 4 --ctx-size 2048 --batch-size 2048 --ubatch-size 2048
+
+[Service]
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,10 @@
+[Unit]
+Description=OpenViking pod (server + local embedding server)
+
+[Pod]
+# Loopback only: the OpenViking HTTP API and Studio UI (/studio/) on 1933.
+# Studio on the tailnet: `tailscale serve --bg --https=8447 http://127.0.0.1:1933`.
+PublishPort=127.0.0.1:1933:1933
+
+[Install]
+WantedBy=default.target
