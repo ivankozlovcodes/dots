@@ -5,9 +5,9 @@ Wants=infradeck-postgres.service infradeck-redis.service
 
 [Container]
 ContainerName=infradeck-backend
-# Built locally from the v1.0.0 tag (no published image is pullable):
-#   cd ~/git/infradeck && git checkout v1.0.0 && podman build -f docker/backend.Dockerfile -t localhost/infradeck-backend:1.0.0 .
-Image=localhost/infradeck-backend:1.0.0
+# Built locally (no published image is pullable) from branch minerva-local-llm = v1.0.0 + the local-LLM patch:
+#   cd ~/git/infradeck && git checkout minerva-local-llm && podman build -f docker/backend.Dockerfile -t localhost/infradeck-backend:1.0.0-local .
+Image=localhost/infradeck-backend:1.0.0-local
 Pull=never
 Network=infradeck-data.network
 Network=infradeck-front.network:alias=backend
@@ -21,6 +21,10 @@ Environment=ALLOW_REGISTRATION=false
 Environment=CORS_ORIGINS=https://minerva.tail9e3eb4.ts.net:8446
 # Collector endpoints answer only through the collector gate (the local collector uses its internal listener).
 Environment=COLLECTOR_ACCESS=strict
+# Incident agent on brainz llama.cpp: pick "Google Gemini" in Admin › Incident agent with key `local` and model
+# `local/Spark-X2.6-4B:Q8_0` (the only brainz model allowed for trials). Same env on infradeck-agent-worker.
+Environment=INFRADECK_GEMINI_BASE_URL=http://192.168.8.4:9931/v1
+Environment=INFRADECK_SPLIT_SCHEMA_FROM_TOOLS=1
 # ADMIN_BOOTSTRAP_TOKEN left unset: the setup token is printed once in the log (podman logs infradeck-backend).
 ReadOnly=true
 Tmpfs=/tmp

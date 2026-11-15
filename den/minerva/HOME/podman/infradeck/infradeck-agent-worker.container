@@ -1,0 +1,33 @@
+[Unit]
+Description=Infradeck agent worker (runs incident-agent jobs from Redis)
+After=network-online.target infradeck-backend.service
+Wants=infradeck-backend.service
+
+[Container]
+ContainerName=infradeck-agent-worker
+# Same image as the backend (see infradeck-backend.container for the build command).
+Image=localhost/infradeck-backend:1.0.0-local
+Pull=never
+Exec=python -m src.agent.worker
+Network=infradeck-data.network
+# front is not Internal, so the worker can reach brainz (upstream compose does the same).
+Network=infradeck-front.network
+Secret=infradeck_database_url,type=env,target=DATABASE_URL
+Secret=infradeck_redis_url,type=env,target=REDIS_URL
+# Decrypts the agent's API key stored by Admin › Incident agent.
+Secret=infradeck_secrets_key,type=env,target=SECRETS_KEY
+# Model on brainz llama.cpp, through the patched "Google Gemini" provider.
+Environment=INFRADECK_GEMINI_BASE_URL=http://192.168.8.4:9931/v1
+Environment=INFRADECK_SPLIT_SCHEMA_FROM_TOOLS=1
+Environment=PYTHONDONTWRITEBYTECODE=1
+ReadOnly=true
+Tmpfs=/tmp
+DropCapability=ALL
+NoNewPrivileges=true
+
+[Service]
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target
