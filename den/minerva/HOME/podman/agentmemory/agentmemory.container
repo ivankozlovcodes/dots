@@ -1,0 +1,52 @@
+[Unit]
+Description=agentmemory
+After=network-online.target
+
+[Container]
+ContainerName=agentmemory
+# Pinned to the v0.9.33 release (git tag and Docker Hub tag); bump deliberately, never latest.
+Image=docker.io/ghumarerohit/agentmemory:0.9.33
+# Loopback only: REST API (3111) and viewer (3113).
+PublishPort=127.0.0.1:3111:3111
+PublishPort=127.0.0.1:3113:3113
+# Keep host minerva (uid 1000) as the in-container node user so /data files are owned by minerva.
+# keep-id would start the process as uid 1000, but the entrypoint must start as root to gosu to node;
+# User=0 is the image default and maps to a subuid on the host.
+UserNS=keep-id
+User=0
+Volume=/home/minerva/appdata/agentmemory:/data
+# Read-only source for the pi-memory migration; AGENTMEMORY_IMPORT_ROOT lets file imports read from here.
+Volume=/home/minerva/obsidian/sb/pi/memory:/import/pi-memory:ro
+Environment=AGENTMEMORY_IMPORT_ROOT=/import
+Environment=TZ=America/Los_Angeles
+Environment=III_TELEMETRY_ENABLED=false
+Environment=MALLOC_ARENA_MAX=2
+# Bearer for REST and viewer; the same value is in ~/.agentmemory/secret for the pi extension.
+Secret=agentmemory_secret,type=env,target=AGENTMEMORY_SECRET
+# Local embeddings load their model lazily on first embed; no cloud key involved.
+Environment=EMBEDDING_PROVIDER=local
+# Chat model on brainz (llama.cpp, OpenAI-compatible). The client appends /v1/chat/completions
+# itself when the base URL has no path, so the bare host is correct.
+Environment=AGENTMEMORY_LLM_PROVIDER=openai
+Environment=OPENAI_BASE_URL=http://192.168.8.4:9931
+Environment=OPENAI_API_KEY=local
+Environment=OPENAI_MODEL=local/Huihui-Qwen3.8-27B:Q4_K_XL
+Environment=OPENAI_REASONING_EFFORT=none
+Environment=AGENTMEMORY_LLM_NOTHINK=1
+Environment=AGENTMEMORY_LLM_TIMEOUT_MS=180000
+# Keep every LLM-backed background path off. Consolidation defaults on once an LLM provider is set.
+Environment=AGENTMEMORY_AUTO_COMPRESS=false
+Environment=CONSOLIDATION_ENABLED=false
+Environment=GRAPH_EXTRACTION_ENABLED=false
+HealthCmd=node -e 'fetch("http://127.0.0.1:3111/agentmemory/livez").then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))'
+HealthStartPeriod=60s
+HealthTimeout=5s
+HealthInterval=30s
+HealthRetries=3
+
+[Service]
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target
