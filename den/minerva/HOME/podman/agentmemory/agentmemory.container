@@ -34,7 +34,10 @@ Environment=OPENAI_API_KEY=local
 Environment=OPENAI_MODEL=local/Huihui-Qwen3.8-27B:Q4_K_XL
 Environment=OPENAI_REASONING_EFFORT=none
 Environment=AGENTMEMORY_LLM_NOTHINK=1
-Environment=AGENTMEMORY_LLM_TIMEOUT_MS=180000
+# The 27B on brainz shares its 4 slots with interactive sessions, so calls can be slow: 15 min per LLM call,
+# 15 min per session summary (default 2 min, which made most summaries fail with summary_timeout).
+Environment=AGENTMEMORY_LLM_TIMEOUT_MS=900000
+Environment=AGENTMEMORY_SUMMARY_TIMEOUT_MS=900000
 # Per-tool-call compression stays off (a 27B call per tool call is too slow).
 # Consolidation, 2-minute idle session summaries and graph extraction (batched) use the 27B, brainz's always-loaded model.
 Environment=AGENTMEMORY_AUTO_COMPRESS=false
