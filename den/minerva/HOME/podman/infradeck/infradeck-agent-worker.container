@@ -10,7 +10,7 @@ Image=localhost/infradeck-backend:1.0.0-local
 Pull=never
 Exec=python -m src.agent.worker
 Network=infradeck-data.network
-# front is not Internal, so the worker can reach brainz (upstream compose does the same).
+# front is not Internal, so the worker can reach the model provider (upstream compose does the same).
 Network=infradeck-front.network
 # Publishes alerts to ntfy as http://ntfy/infradeck (see podman/ntfy).
 Network=ntfy.network
@@ -18,9 +18,6 @@ Secret=infradeck_database_url,type=env,target=DATABASE_URL
 Secret=infradeck_redis_url,type=env,target=REDIS_URL
 # Decrypts the agent's API key stored by Admin › Incident agent.
 Secret=infradeck_secrets_key,type=env,target=SECRETS_KEY
-# Model on brainz llama.cpp, through the patched "Google Gemini" provider.
-Environment=INFRADECK_GEMINI_BASE_URL=http://192.168.8.4:9931/v1
-Environment=INFRADECK_SPLIT_SCHEMA_FROM_TOOLS=1
 Environment=PYTHONDONTWRITEBYTECODE=1
 ReadOnly=true
 Tmpfs=/tmp
