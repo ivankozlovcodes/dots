@@ -19,9 +19,6 @@ Environment=VIEWER_ALLOWED_ORIGINS=https://minerva.tail9e3eb4.ts.net:8445,http:/
 UserNS=keep-id
 User=0
 Volume=/home/minerva/appdata/agentmemory:/data
-# Read-only source for the pi-memory migration; AGENTMEMORY_IMPORT_ROOT lets file imports read from here.
-Volume=/home/minerva/obsidian/sb/pi/memory:/import/pi-memory:ro
-Environment=AGENTMEMORY_IMPORT_ROOT=/import
 Environment=TZ=America/Los_Angeles
 Environment=III_TELEMETRY_ENABLED=false
 Environment=MALLOC_ARENA_MAX=2
