@@ -35,12 +35,10 @@ Environment=OPENAI_MODEL=local/Huihui-Qwen3.8-27B:Q4_K_XL
 Environment=OPENAI_REASONING_EFFORT=none
 Environment=AGENTMEMORY_LLM_NOTHINK=1
 Environment=AGENTMEMORY_LLM_TIMEOUT_MS=180000
-# Keep every LLM-backed background path off. Consolidation defaults on once an LLM provider is set.
+# Per-tool-call compression and graph extraction stay off (a 27B call per tool call is too slow).
+# Consolidation and 2-minute idle session summaries use the defaults: the 27B is brainz's always-loaded model.
 Environment=AGENTMEMORY_AUTO_COMPRESS=false
-Environment=CONSOLIDATION_ENABLED=false
 Environment=GRAPH_EXTRACTION_ENABLED=false
-# Summarize sessions only when they end, not after every 2-minute idle: each summary loads the 27B on brainz.
-Environment=AGENTMEMORY_FINALIZE_IDLE_MS=0
 HealthCmd=node -e 'fetch("http://127.0.0.1:3111/agentmemory/livez").then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))'
 HealthStartPeriod=60s
 HealthTimeout=5s
