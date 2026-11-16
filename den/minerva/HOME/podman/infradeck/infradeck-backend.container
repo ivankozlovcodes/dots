@@ -5,7 +5,8 @@ Wants=infradeck-postgres.service infradeck-redis.service
 
 [Container]
 ContainerName=infradeck-backend
-# Built locally (no published image is pullable) from branch minerva-local-llm = v1.0.0 + the local-LLM patch:
+# Built locally (no published image is pullable) from branch minerva-local-llm = v1.0.0 + local-LLM and Gemini
+# thought-signature patches:
 #   cd ~/git/infradeck && git checkout minerva-local-llm && podman build -f docker/backend.Dockerfile -t localhost/infradeck-backend:1.0.0-local .
 Image=localhost/infradeck-backend:1.0.0-local
 Pull=never
