@@ -1,0 +1,6 @@
+[Unit]
+Description=boxed owl sessions (owl-hc and its via connections)
+Before=slices.target
+
+[Slice]
+MemoryMax=6G

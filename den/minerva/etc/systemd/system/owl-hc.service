@@ -1,17 +1,16 @@
-# The hc machine "owl": owl's own herdr-core, boxed like owl.service used to be.
+# The hc machine "owl": owl's own herdr-core (boxed read-only librarian).
 # The serving pi runs in it as terminal "librarian" (started by start-owl-hc.sh); every
 # terminal, holder and exec is a child of this core, so all of it runs as owl in
 # /owl.slice/owl-hc.service with the locks below.
 # minerva reaches it with: hc machine add --via "sudo -n /usr/local/sbin/owl-hc-via" --name owl
 # Fail closed: socket in RuntimeDirectory (removed on stop), state in StateDirectory.
-# Keep the sandbox block in sync with /usr/local/sbin/owl-hc-via and owl-sandbox.
+# Keep the sandbox block in sync with /usr/local/sbin/owl-hc-via.
 [Unit]
 Description=hc core for the owl machine (boxed read-only librarian)
 Wants=network-online.target
 Requires=home-owl-obsidian.mount
 After=network-online.target systemd-tmpfiles-setup.service home-owl-obsidian.mount
 RequiresMountsFor=/home/owl/obsidian
-Conflicts=owl.service
 
 [Service]
 Type=simple

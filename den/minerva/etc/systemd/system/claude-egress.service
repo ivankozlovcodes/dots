@@ -2,7 +2,7 @@
 Description=nftables: claude egress policy (internet, SearXNG, own loopback sockets only)
 Requires=claude.slice
 After=claude.slice
-Before=claude-herdr.service
+Before=claude-hc.service
 
 [Service]
 Type=oneshot

@@ -3,7 +3,7 @@
 #   hc machine add --via "sudo -n /usr/local/sbin/owl-hc-via" --name owl
 # hc passes one shell line (it starts `herdr-core connect`) as the last argument. It runs as
 # owl in a boxed transient unit in owl.slice; stdio is passed through untouched.
-# Keep the -p properties in sync with /etc/systemd/system/owl-hc.service and owl-sandbox.
+# Keep the -p properties in sync with /etc/systemd/system/owl-hc.service.
 set -euo pipefail
 [ "$(id -u)" = 0 ] || { echo "owl-hc-via: must run as root (sudo -n)" >&2; exit 1; }
 [ $# -ge 1 ] || { echo "owl-hc-via: no shell line given" >&2; exit 2; }

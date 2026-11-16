@@ -1,10 +1,10 @@
-# The hc machine "claude": claude's own herdr-core, boxed like claude-herdr.service.
+# The hc machine "claude": claude's own herdr-core (boxed claude terminals).
 # Every terminal, holder and exec is a child of this core, so all of claude's programs on
 # this machine run as claude in /claude.slice/claude-hc.service with the limits below.
 # minerva reaches it with: hc machine add --via "sudo -n /usr/local/sbin/claude-hc-via" --name claude
 # Fail closed: the socket lives in RuntimeDirectory (removed on stop; claude cannot create
 # /run/claude-hc) and the state in StateDirectory (read-only to other boxed claude units).
-# Keep the sandbox block in sync with claude-herdr.service (+ drop-ins) and claude-sandbox.
+# Keep the sandbox block in sync with /usr/local/sbin/claude-hc-via.
 [Unit]
 Description=hc core for the claude machine (boxed claude terminals)
 Wants=network-online.target

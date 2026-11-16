@@ -1,4 +1,4 @@
-# Every sandboxed claude process lives here (claude-herdr, claude-sandbox runs).
+# Every boxed claude process lives here (claude-hc and its via connections).
 # claude-egress.nft lets claude reach a loopback socket only if that socket's cgroup is
 # under this slice, so the slice is kept active (stable cgroup id for nft).
 [Unit]
