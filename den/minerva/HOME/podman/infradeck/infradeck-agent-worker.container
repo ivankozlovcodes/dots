@@ -21,6 +21,8 @@ Secret=infradeck_secrets_key,type=env,target=SECRETS_KEY
 # Same model settings as infradeck-backend.
 Environment=INFRADECK_GEMINI_BASE_URL=http://192.168.8.4:9931/v1
 Environment=INFRADECK_SPLIT_SCHEMA_FROM_TOOLS=1
+# Huihui 27B thinks ~2.5x less with low effort.
+Environment=INFRADECK_REASONING_EFFORT=low
 # Local models are slow: 5 min per model call, 4 min of look-ups per chat answer, 10 min per diagnosis.
 Environment=INFRADECK_MODEL_TIMEOUT_SECONDS=300
 Environment=INFRADECK_CHAT_DEADLINE_SECONDS=240
