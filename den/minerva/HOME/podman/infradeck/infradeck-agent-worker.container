@@ -18,6 +18,13 @@ Secret=infradeck_database_url,type=env,target=DATABASE_URL
 Secret=infradeck_redis_url,type=env,target=REDIS_URL
 # Decrypts the agent's API key stored by Admin › Incident agent.
 Secret=infradeck_secrets_key,type=env,target=SECRETS_KEY
+# Same model settings as infradeck-backend.
+Environment=INFRADECK_GEMINI_BASE_URL=http://192.168.8.4:9931/v1
+Environment=INFRADECK_SPLIT_SCHEMA_FROM_TOOLS=1
+# Local models are slow: 5 min per model call, 4 min of look-ups per chat answer, 10 min per diagnosis.
+Environment=INFRADECK_MODEL_TIMEOUT_SECONDS=300
+Environment=INFRADECK_CHAT_DEADLINE_SECONDS=240
+Environment=INFRADECK_DIAGNOSIS_DEADLINE_SECONDS=600
 Environment=PYTHONDONTWRITEBYTECODE=1
 ReadOnly=true
 Tmpfs=/tmp
