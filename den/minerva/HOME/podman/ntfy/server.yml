@@ -1,0 +1,12 @@
+# ntfy server for minerva. Phone app: https://minerva.tail9e3eb4.ts.net:8448 (tailscale serve).
+base-url: "https://minerva.tail9e3eb4.ts.net:8448"
+listen-http: ":80"
+cache-file: "/var/lib/ntfy/cache.db"
+auth-file: "/var/lib/ntfy/auth.db"
+# Nothing is readable or writable without an account, except publishing to the alert topic (see ntfy.container).
+auth-default-access: "deny-all"
+behind-proxy: true
+# Instant delivery on Android without a permanent connection: ntfy.sh only relays a "poll now" ping
+# (message ID, no content) through Firebase; the app then fetches the message from this server.
+upstream-base-url: "https://ntfy.sh"
+cache-duration: "72h"

@@ -11,6 +11,8 @@ Image=localhost/infradeck-backend:1.0.0-local
 Pull=never
 Network=infradeck-data.network
 Network=infradeck-front.network:alias=backend
+# Publishes alerts to ntfy as http://ntfy/infradeck (see podman/ntfy).
+Network=ntfy.network
 Secret=infradeck_database_url,type=env,target=DATABASE_URL
 Secret=infradeck_redis_url,type=env,target=REDIS_URL
 # Encrypts TOTP secrets. Without it two-factor can't be set up, and admins are required to use it by default.

@@ -12,6 +12,8 @@ Exec=python -m src.agent.worker
 Network=infradeck-data.network
 # front is not Internal, so the worker can reach brainz (upstream compose does the same).
 Network=infradeck-front.network
+# Publishes alerts to ntfy as http://ntfy/infradeck (see podman/ntfy).
+Network=ntfy.network
 Secret=infradeck_database_url,type=env,target=DATABASE_URL
 Secret=infradeck_redis_url,type=env,target=REDIS_URL
 # Decrypts the agent's API key stored by Admin › Incident agent.

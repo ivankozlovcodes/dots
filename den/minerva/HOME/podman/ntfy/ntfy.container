@@ -1,0 +1,24 @@
+[Unit]
+Description=ntfy (push notifications)
+After=network-online.target
+
+[Container]
+ContainerName=ntfy
+Image=docker.io/binwiederhier/ntfy:v2.38.0
+Exec=serve
+# Loopback for tailscale serve: `tailscale serve --bg --https=8448 http://127.0.0.1:2586`.
+PublishPort=127.0.0.1:2586:80
+# Services on this network reach it as http://ntfy/ (Infradeck's backend joins it).
+Network=ntfy.network:alias=ntfy
+Environment=TZ=America/Los_Angeles
+Volume=/home/minerva/git/dots/den/minerva/HOME/podman/ntfy/server.yml:/etc/ntfy/server.yml:ro
+Volume=/home/minerva/appdata/ntfy:/var/lib/ntfy
+HealthCmd=wget -q --tries=1 -O- http://localhost:80/v1/health
+HealthStartPeriod=20s
+
+[Service]
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target
