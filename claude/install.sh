@@ -38,10 +38,7 @@ fi
 
 mkdir -p "$DST/hooks" "$DST/skills" "$HOME/.agents"
 
-# settings.json: copied (Claude Code rewrites it in place), back up whatever is there
-if [[ -f "$DST/settings.json" && ! -L "$DST/settings.json" ]]; then
-	cp "$DST/settings.json" "$DST/settings.json.pre-dots.$(date +%s)"
-fi
+# settings.json: copied, not linked (Claude Code rewrites it in place)
 if [[ "${1:-}" == "--tiny-engineer" ]]; then
 	python3 - "$SRC/settings.json" "$SRC/hooks.tiny-engineer.json" "$DST/settings.json" <<-'PY'
 	import json, sys
@@ -63,9 +60,7 @@ for f in "$SRC"/hooks/*; do
 done
 
 # skills: ~/.agents/skills -> dots, ~/.claude/skills/<name> -> ../../.agents/skills/<name>
-if [[ -d "$HOME/.agents/skills" && ! -L "$HOME/.agents/skills" ]]; then
-	mv "$HOME/.agents/skills" "$HOME/.agents/skills.pre-dots.$(date +%s)"
-fi
+[[ -d "$HOME/.agents/skills" && ! -L "$HOME/.agents/skills" ]] && rm -rf "$HOME/.agents/skills"
 ln -sfn "$SRC/skills" "$HOME/.agents/skills"
 for s in "$SRC"/skills/*/; do
 	n=$(basename "$s")
