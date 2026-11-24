@@ -72,6 +72,10 @@ for s in "$DOTS"/.agents/skills/*/; do
 	n=$(basename "$s")
 	ln -sfn "../../.agents/skills/$n" "$DST/skills/$n"
 done
+# prune skill links whose target no longer exists (skill removed from dots)
+for l in "$DST"/skills/*; do
+	[[ -L "$l" && ! -e "$l" ]] && rm -v "$l"
+done
 
 [[ -x "$HOME/.config/herdr-app/mods/chat/ask-hook.sh" || -f "$HOME/.config/herdr-app/mods/chat/ask-hook.sh" ]] \
 	|| echo "note: herdr chat mod hooks need ./install.sh (herdr) first" >&2
