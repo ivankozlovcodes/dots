@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Sync Claude Code config between ~/git/dots and ~/.claude
+# Sync Claude Code config between ~/git/dots/claude and ~/.claude
 #
 # Usage:
-#   ./install-claude.sh                  # install: copy settings.json, link hooks + skills
-#   ./install-claude.sh --tiny-engineer  # same, plus merge the tiny-engineer hooks into settings.json
-#   ./install-claude.sh --pull           # copy ~/.claude/settings.json back into dots
+#   claude/install.sh                  # install: copy settings.json, link hooks + skills
+#   claude/install.sh --tiny-engineer  # same, plus merge the tiny-engineer hooks into settings.json
+#   claude/install.sh --pull           # copy ~/.claude/settings.json back into dots
 #                                        # (tiny-engineer hooks split out, /home paths -> $HOME)
 #
 # Not synced on purpose: .credentials.json (log in again), settings.local.json (per-machine
@@ -12,8 +12,7 @@
 
 set -euo pipefail
 
-DOTS=$(cd -- "$(dirname -- "$(readlink -f -- "$0")")" && pwd)
-SRC="$DOTS/.claude"
+SRC=$(cd -- "$(dirname -- "$(readlink -f -- "$0")")" && pwd)
 DST="$HOME/.claude"
 
 if [[ "${1:-}" == "--pull" ]]; then
@@ -67,8 +66,8 @@ done
 if [[ -d "$HOME/.agents/skills" && ! -L "$HOME/.agents/skills" ]]; then
 	mv "$HOME/.agents/skills" "$HOME/.agents/skills.pre-dots.$(date +%s)"
 fi
-ln -sfn "$DOTS/.agents/skills" "$HOME/.agents/skills"
-for s in "$DOTS"/.agents/skills/*/; do
+ln -sfn "$SRC/skills" "$HOME/.agents/skills"
+for s in "$SRC"/skills/*/; do
 	n=$(basename "$s")
 	ln -sfn "../../.agents/skills/$n" "$DST/skills/$n"
 done
@@ -78,5 +77,5 @@ for l in "$DST"/skills/*; do
 done
 
 [[ -x "$HOME/.config/herdr-app/mods/chat/ask-hook.sh" || -f "$HOME/.config/herdr-app/mods/chat/ask-hook.sh" ]] \
-	|| echo "note: herdr chat mod hooks need ./install.sh (herdr) first" >&2
+	|| echo "note: two hooks use the herdr chat mod, which the Herdr app installs: open Herdr once" >&2
 echo "done. Run 'claude' and log in; it offers to install the plugins listed in settings.json."
