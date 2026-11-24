@@ -1,0 +1,145 @@
+{
+  "SessionStart": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "$HOME/.local/bin/tiny-engineer hook claude-code",
+          "async": true
+        }
+      ]
+    }
+  ],
+  "SessionEnd": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "$HOME/.local/bin/tiny-engineer hook claude-code",
+          "async": true
+        }
+      ]
+    }
+  ],
+  "UserPromptSubmit": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "$HOME/.local/bin/tiny-engineer hook claude-code",
+          "async": true
+        }
+      ]
+    }
+  ],
+  "SubagentStart": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "$HOME/.local/bin/tiny-engineer hook claude-code",
+          "async": true
+        }
+      ]
+    }
+  ],
+  "PreToolUse": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "$HOME/.local/bin/tiny-engineer hook claude-code",
+          "async": true
+        }
+      ]
+    }
+  ],
+  "PostToolBatch": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "$HOME/.local/bin/tiny-engineer hook claude-code",
+          "async": true
+        }
+      ]
+    }
+  ],
+  "PostToolUseFailure": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "$HOME/.local/bin/tiny-engineer hook claude-code",
+          "async": true
+        }
+      ]
+    }
+  ],
+  "PreCompact": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "$HOME/.local/bin/tiny-engineer hook claude-code",
+          "async": true
+        }
+      ]
+    }
+  ],
+  "PermissionRequest": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "$HOME/.local/bin/tiny-engineer hook claude-code",
+          "async": true
+        }
+      ]
+    }
+  ],
+  "PermissionDenied": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "$HOME/.local/bin/tiny-engineer hook claude-code",
+          "async": true
+        }
+      ]
+    }
+  ],
+  "Notification": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "$HOME/.local/bin/tiny-engineer hook claude-code",
+          "async": true
+        }
+      ]
+    }
+  ],
+  "Stop": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "$HOME/.local/bin/tiny-engineer hook claude-code",
+          "async": true
+        }
+      ]
+    }
+  ],
+  "StopFailure": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "$HOME/.local/bin/tiny-engineer hook claude-code",
+          "async": true
+        }
+      ]
+    }
+  ]
+}
